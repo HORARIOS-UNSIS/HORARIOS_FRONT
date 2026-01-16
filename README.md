@@ -2,7 +2,7 @@
 
 Un sistema web moderno para la gestión y programación de exámenes académicos en la Universidad del Noroeste (UNSIS). Desarrollado con Vue.js 3 y PrimeVue para una experiencia de usuario intuitiva y responsiva.
 
-## 🚀 Características
+## Características
 
 ### Para Servicios Escolares
 - **Panel de Control Completo**: Vista general de todos los exámenes, grupos y estadísticas
@@ -19,7 +19,7 @@ Un sistema web moderno para la gestión y programación de exámenes académicos
 - **Gestión de Sinodales**: Administración de sinodales para su carrera
 - **Estadísticas Específicas**: Métricas enfocadas en su área
 
-## 🛠️ Tecnologías Utilizadas
+## tecnologías Utilizadas
 
 - **Frontend Framework**: Vue.js 3 (Composition API)
 - **UI Library**: PrimeVue 3 + PrimeIcons
@@ -28,12 +28,12 @@ Un sistema web moderno para la gestión y programación de exámenes académicos
 - **HTTP Client**: Axios
 - **Styling**: CSS3 con diseño moderno y responsivo
 
-## 📋 Requisitos Previos
+##  Requisitos Previos
 
 - Node.js (versión 16 o superior)
 - npm o yarn
 
-## 🚀 Instalación
+## Instalación
 
 1. **Clona el repositorio**
    ```bash
@@ -55,7 +55,7 @@ Un sistema web moderno para la gestión y programación de exámenes académicos
 
    Ve a `http://localhost:5173` (o el puerto que indique la consola)
 
-## 📖 Uso
+## Uso
 
 ### Usuarios de Demostración
 
@@ -82,7 +82,7 @@ El sistema incluye usuarios de demostración para probar todas las funcionalidad
 7. **Sinodales**: Gestión de sinodales (solo jefes de carrera)
 8. **Generación Automática**: Herramientas de programación automática
 
-## 📁 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```
 Sistema-Horarios/
@@ -110,13 +110,13 @@ Sistema-Horarios/
 └── README.md
 ```
 
-## 🔧 Scripts Disponibles
+## Scripts Disponibles
 
 - `npm run dev` - Inicia el servidor de desarrollo
 - `npm run build` - Construye la aplicación para producción
 - `npm run preview` - Vista previa de la build de producción
 
-## 🎨 Características de UI/UX
+## Características de UI/UX
 
 - **Diseño Moderno**: Interfaz limpia con efectos glassmorphism
 - **Responsivo**: Adaptable a diferentes tamaños de pantalla
@@ -124,7 +124,7 @@ Sistema-Horarios/
 - **Animaciones**: Transiciones suaves y efectos visuales
 - **Tema Oscuro/Claro**: Soporte para diferentes temas
 
-## 📊 Datos Simulados
+## Datos Simulados
 
 El sistema incluye datos de demostración que simulan:
 - Carreras académicas (Informática, Medicina, Administración)
@@ -133,7 +133,7 @@ El sistema incluye datos de demostración que simulan:
 - Tipos de exámenes (Parciales, Ordinarios, Extraordinarios)
 - Usuarios con diferentes roles y permisos
 
-## 🤝 Contribución
+## Contribución
 
 1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -141,15 +141,15 @@ El sistema incluye datos de demostración que simulan:
 4. Push a la rama (`git push origin feature/AmazingFeature`)
 5. Abre un Pull Request
 
-## 📝 Licencia
+## Licencia
 
 Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para más detalles.
 
-## 👥 Autores
+## Autores
 
 - **Equipo de Desarrollo** - Desarrollo inicial
 
-## 🙏 Agradecimientos
+## Agradecimientos
 
 - Universidad de la Sierra Sur (UNSIS) por el requerimiento del proyecto
 - PrimeVue por la excelente librería de componentes
