@@ -13,8 +13,9 @@
     <div class="login-content">
       <!-- Bienvenida -->
       <div class="welcome-section">
-        <h1 class="welcome-title">Bienvenido</h1>
-        <p class="welcome-subtitle">Inicia tu gestión de exámenes...</p>
+      <LogoApp/>
+        <!--h1 class="welcome-title">Bienvenido</h1>
+        <p class="welcome-subtitle">Inicia tu gestión de exámenes...</p-->
       </div>
 
       <!-- Formulario -->
@@ -105,6 +106,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import LogoApp from '../../components/LogoApp.vue'
 
 const router = useRouter()
 
