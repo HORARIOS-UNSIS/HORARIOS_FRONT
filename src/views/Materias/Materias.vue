@@ -17,12 +17,11 @@
       </button>
     </div>
 
-    <!-- AVISO BLOQUEO -->
     <div v-if="bloqueado" class="alert-warning">
       Ya existen exámenes programados. La configuración de materias está bloqueada.
     </div>
 
-    <!-- TABLA -->
+
     <div v-if="materias.length" class="table-wrapper">
       <table class="data-table">
         <thead>
@@ -45,7 +44,7 @@
             <td>{{ m.nombre }}</td>
             <td>{{ m.profesor }}</td>
 
-            <!-- TIPO DE EXAMEN -->
+            <!-- TIPO D EXAMEN -->
             <td>
               <select v-model="m.tipo_aplicacion" class="select-input">
                 <option value="">Sin asignar</option>
