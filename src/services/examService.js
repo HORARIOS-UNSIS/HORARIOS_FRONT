@@ -28,9 +28,24 @@ const database = {
   ],
 
   materias: [
-    { id: 1, clave: 'MAT101', nombre: 'Matemáticas I', semestre: 1, carrera_id: 1 },
-    { id: 2, clave: 'FIS101', nombre: 'Física General', semestre: 1, carrera_id: 1 },
-    { id: 3, clave: 'ANA101', nombre: 'Anatomía Humana', semestre: 1, carrera_id: 2 }
+    {
+      id: 1,
+      nombre: 'Programación Orientada a Objetos',
+      semestre: 3,
+      tipo_aplicacion: 'escrito'
+    },
+    {
+      id: 2,
+      nombre: 'Bases de Datos',
+      semestre: 3,
+      tipo_aplicacion: 'computadora'
+    },
+    {
+      id: 3,
+      nombre: 'Redes',
+      semestre: 5,
+      tipo_aplicacion: 'escrito'
+    }
   ],
 
   grupos: [
@@ -213,5 +228,27 @@ export function obtenerProfesores() {
     { id: 8, nombre: 'Rosa Castillo' }
   ];
 }
+
+export function obtenerMateriasParaExamen(carreraId = 1) {
+  return database.grupos
+    .filter(g => g.carrera_id === carreraId)
+    .map(g => {
+      const materia = database.materias.find(m => m.id === g.materia_id);
+      const aula = database.aulas.find(a => a.id === g.aula_id);
+      const profesor = obtenerProfesores()[g.id % 6]; // simulado
+
+      return {
+        id: materia.id,
+        nombre: materia.nombre,
+        semestre: g.semestre,
+        grupo: g.nombre,
+        profesor: profesor.nombre,
+        tipo_aplicacion: materia.tipo_aplicacion,
+        aula: aula?.nombre || 'Sin aula',
+        hora_clase: '08:00'
+      };
+    });
+}
+
 
 

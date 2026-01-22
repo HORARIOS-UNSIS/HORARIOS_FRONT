@@ -202,7 +202,6 @@ import * as examService from '../../services/examService'
 
 const router = useRouter()
 
-/* ===== ESTADO ===== */
 const paso = ref(1)
 const periodo = ref('')
 const tipo = ref('')
@@ -214,7 +213,7 @@ const modoEdicionAulas = ref(false)
 const mostrarConfirmacion = ref(false)
 let respaldoAulas = []
 
-/* ===== DATOS ===== */
+//Datos
 const periodos = ['2024-2025B', '2025-2026A', '2025-2026B']
 
 const rangos = {
@@ -223,16 +222,13 @@ const rangos = {
   extraordinario: generarRango('2026-01-30', '2026-02-09')
 }
 
-/* ===== CARGA ===== */
+//Carga
 onMounted(() => {
-  materias.value = examService.obtenerMaterias().map(m => ({
-    ...m,
-    aula: m.aula || 'Aula 101'
-  }))
+  materias.value = examService.obtenerMateriasParaExamen(1)
   aulas.value = examService.obtenerAulas()
 })
 
-/* ===== FUNCIONES ===== */
+//Funciones
 function siguientePaso() {
   if (paso.value === 1 && (!periodo.value || !tipo.value)) {
     alert('Completa periodo y tipo de examen')

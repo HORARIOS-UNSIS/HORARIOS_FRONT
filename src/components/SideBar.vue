@@ -240,8 +240,8 @@ const allMenuItems = computed(() => {
       },
       {
         id: 'generacion-auto',
-        title: 'Auto-Generar',
-        description: 'Creación rápida',
+        title: 'Examenes Programados',
+        description: 'Creados por el sistema',
         icon: 'pi-bolt'
       }
     )

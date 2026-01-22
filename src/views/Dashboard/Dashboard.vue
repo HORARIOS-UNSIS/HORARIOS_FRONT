@@ -309,38 +309,12 @@
       -->
 
       <!-- Vista Materias -->
-      <div v-show="currentView === 'materias'" class="view-container">
-        <div class="section-header">
-          <div class="section-title">
-            <h3>Materias</h3>
-            <span class="count-badge">{{ materiasData.length }}</span>
-          </div>
-        </div>
-
-        <div v-if="materiasData.length > 0" class="table-wrapper">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>Clave</th>
-                <th>Nombre</th>
-                <th>Carrera</th>
-                <th>Semestre</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="materia in materiasData" :key="materia.id" class="table-row">
-                <td><span class="code-badge">{{ materia.clave }}</span></td>
-                <td>{{ materia.nombre }}</td>
-                <td>{{ obtenerNombreCarrera(materia.carrera_id) }}</td>
-                <td>{{ materia.semestre }}º</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div v-else class="empty-state">
-          <i class="pi pi-inbox"></i>
-          <p>No hay materias disponibles</p>
-        </div>
+      <div v-show="currentView === 'materias'">
+        <Materias
+          v-show="currentView === 'materias'"
+          :materias="materiasData"
+          :carreras="carrerasData"
+        />
       </div>
       <!-- Vista de programacion de exaenes -->
        <!-- Vista Progreso de Exámenes -->
@@ -394,7 +368,7 @@ import Sidebar from '../../components/Sidebar.vue';
 import SinodalManager from '../Sinodal/SinodalManager.vue';
 import AutoExamGenerator from '../ProgramarExamen/GenerateScheduleExams.vue';
 import GruposView from '../Grupos/Grupos.vue';
-
+import Materias from '../Materias/Materias.vue';
 const router = useRouter();
 
 // Estado del usuario
