@@ -8,16 +8,16 @@ Un sistema web moderno para la gestión y programación de exámenes académicos
 - **Panel de Control Completo**: Vista general de todos los exámenes, grupos y estadísticas
 - **Gestión de Exámenes**: Crear, editar y eliminar exámenes
 - **Vista de Calendario**: Programación visual de exámenes
-- **Gestión de Grupos**: Administración de grupos académicos
-- **Gestión de Materias**: Control de materias por carrera
-- **Sistema de Sinodales**: Asignación de sinodales a materias
-- **Auditoría**: Registro de todas las acciones realizadas
 
 ### Para Jefes de Carrera
 - **Vista Filtrada**: Acceso limitado a su carrera específica
 - **Generación Automática**: Herramientas para programar exámenes automáticamente
 - **Gestión de Sinodales**: Administración de sinodales para su carrera
 - **Estadísticas Específicas**: Métricas enfocadas en su área
+- **Gestión de Grupos**: Administración de grupos académicos
+- **Gestión de Materias**: Control de materias por carrera
+- **Sistema de Sinodales**: Asignación de sinodales a materias
+- **Auditoría**: Registro de todas las acciones realizadas
 
 ## tecnologías Utilizadas
 
