@@ -1,0 +1,14 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: horarios-examen-frontend
+    ports:
+      - "5171:8080"
+    networks:
+      - horarios-examen-network
+    restart: unless-stopped
+networks:
+  horarios-examen-network:
+    driver: bridge

@@ -370,7 +370,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import * as examService from '../../services/examService';
 import ExamProgress from '../ExamProgress/ExamProgress.vue';
-import Sidebar from '../../components/Sidebar.vue';
+import Sidebar from '../../components/SideBar.vue';
 import SinodalManager from '../Sinodal/SinodalManager.vue';
 import AutoExamGenerator from '../ProgramarExamen/GenerateScheduleExams.vue';
 import GruposView from '../Grupos/Grupos.vue';

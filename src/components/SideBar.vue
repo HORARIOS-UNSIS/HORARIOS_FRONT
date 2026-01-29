@@ -309,3 +309,5 @@ const getRoleName = () => {
     : 'Servicios Escolares'
 }
 </script>
+
+<style scoped src="./SideBar.css"></style>
