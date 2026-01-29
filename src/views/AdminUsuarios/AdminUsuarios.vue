@@ -31,7 +31,9 @@
             <th>Email</th>
             <th>Usuario</th>
             <th>Rol</th>
+            <th>Carrera</th>
             <th>Activo</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -43,6 +45,15 @@
             <td>
               <span class="role-badge">{{ obtenerRol(u.rol) }}</span>
             </td>
+            <td>
+          <span v-if="u.rol === 'JEFE'">
+          {{ u.carrera }}
+        </span>
+          <span v-else class="text-muted">
+    —
+  </span>
+</td>
+
             <td>
              <label class="switch">
               <input type="checkbox" v-model="u.activo" />
@@ -88,6 +99,26 @@
           </select>
         </div>
 
+        <!-- CARRERA (SOLO JEFE DE CARRERA) -->
+      <div
+  class="form-group"
+  v-if="nuevoUsuario.rol === 'JEFE'"
+>
+  <label>Carrera</label>
+  <select v-model="nuevoUsuario.carrera">
+    <option disabled value="">Seleccione una carrera</option>
+    <option
+      v-for="carrera in carrerasDisponibles"
+      :key="carrera"
+      :value="carrera"
+    >
+      {{ carrera }}
+    </option>
+  </select>
+</div>
+    
+
+
         <div class="modal-actions">
           <button class="secondary-btn" @click="cerrarModal">
             Cancelar
@@ -96,6 +127,10 @@
             Guardar
           </button>
         </div>
+        <div v-if="errorModal" class="error-message">
+           {{ errorModal }}
+             </div>
+
       </div>
     </div>
   </div>
@@ -103,8 +138,22 @@
 
 <script setup>
 import './AdminUsuarios.css'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 
+/* ===== CARRERAS ===== */
+const carreras = [
+  'Administración Municipal',
+  'Administración Pública',
+  'Ciencias Biomédicas',
+  'Ciencias Empresariales',
+  'Enfermería',
+  'Informática',
+  'Medicina',
+  'Nutrición',
+  'Odontología'
+]
+
+/* ===== USUARIOS ===== */
 const usuarios = ref([
   {
     idUsuario: 1,
@@ -113,44 +162,107 @@ const usuarios = ref([
     username: 'admin',
     password: '',
     rol: 'ADMIN',
+    carrera: null,
     activo: true
   }
 ])
 
 const mostrarModal = ref(false)
+const errorModal = ref('')
 
+/* ===== NUEVO USUARIO ===== */
 const nuevoUsuario = ref({
   nombre: '',
   email: '',
   username: '',
   password: '',
   rol: 'SERV',
+  carrera: null,
   activo: true
 })
 
+/* ===== CARRERAS DISPONIBLES (NO DUPLICADAS) ===== */
+const carrerasDisponibles = computed(() => {
+  const ocupadas = usuarios.value
+    .filter(u => u.rol === 'JEFE')
+    .map(u => u.carrera)
+
+  return carreras.filter(c => !ocupadas.includes(c))
+})
+
+/* ===== CREAR USUARIO ===== */
 const crearUsuario = () => {
+  errorModal.value = ''
+
+  // Campos obligatorios
+  if (
+    !nuevoUsuario.value.nombre ||
+    !nuevoUsuario.value.email ||
+    !nuevoUsuario.value.username ||
+    !nuevoUsuario.value.password
+  ) {
+    errorModal.value = 'Todos los campos son obligatorios'
+    return
+  }
+
+  // Validar correo
+  if (!emailValido(nuevoUsuario.value.email)) {
+    errorModal.value = 'El correo no es válido'
+    return
+  }
+
+  // Validar contraseña
+  if (nuevoUsuario.value.password.length < 6) {
+    errorModal.value = 'La contraseña debe tener al menos 6 caracteres'
+    return
+  }
+
+  // Validar carrera si es JEFE
+  if (
+    nuevoUsuario.value.rol === 'JEFE' &&
+    !nuevoUsuario.value.carrera
+  ) {
+    errorModal.value = 'Debe seleccionar una carrera'
+    return
+  }
+
   usuarios.value.push({
     idUsuario: usuarios.value.length + 1,
     ...nuevoUsuario.value
   })
+
   cerrarModal()
 }
 
+
+
+/* ===== CERRAR MODAL ===== */
 const cerrarModal = () => {
   mostrarModal.value = false
+  errorModal.value = ''
   nuevoUsuario.value = {
     nombre: '',
     email: '',
     username: '',
     password: '',
     rol: 'SERV',
+    carrera: null,
     activo: true
   }
 }
 
+
+/* ===== TEXTO DE ROL ===== */
 const obtenerRol = (rol) => {
   if (rol === 'ADMIN') return 'Administrador'
   if (rol === 'SERV') return 'Servicios Escolares'
   return 'Jefe de Carrera'
 }
+
+const emailValido = (email) => {
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return regex.test(email)
+}
+
+
 </script>
