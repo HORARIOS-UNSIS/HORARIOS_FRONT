@@ -5,7 +5,7 @@ import Dashboard from '../views/Dashboard/Dashboard.vue'
 import ExamProgress from '../views/ExamProgress/ExamProgress.vue'
 import SinodalManager from '../views/Sinodal/SinodalManager.vue'
 import GenerateExams from '../views/ProgramarExamen/GenerateExams.vue'
-import NewExam from '../views/NewExam/NewExam.vue'
+import AdminUsuarios from '../views/AdminUsuarios/AdminUsuarios.vue'
 
 const routes = [
   {
@@ -30,18 +30,24 @@ const routes = [
     name: 'sinodales',
     component: SinodalManager,
     meta: { requiresAuth: true }
-  },
+  },/*
   {
     path: '/generar-examenes',
     name: 'generar-examenes',
     component: GenerateExams,
     meta: { requiresAuth: true }
-  },
+  },*/
   {
     path: '/new-exam',
     name: 'nuevo-exam',
     component: GenerateExams,
     meta: { requiresAuth: true }
+  },
+  {
+    path: '/admin/usuarios',
+    name: 'admin-usuarios',
+    component: AdminUsuarios,
+    meta: { requiresAuth: true, role: 'ADMIN' }
   }
 ]
 

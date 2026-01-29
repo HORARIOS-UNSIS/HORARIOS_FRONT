@@ -58,7 +58,7 @@
         font-size="15" 
         :fill="showBackground ? 'white' : '#555'" 
         letter-spacing="0.5"
-      >Sistema Generador de Exámenes</text>
+      >Sistema Generador de Horarios de Exámenes</text>
 
       <defs>
         <linearGradient id="bg_gradient" x1="0" y1="0" x2="500" y2="300" gradientUnits="userSpaceOnUse">

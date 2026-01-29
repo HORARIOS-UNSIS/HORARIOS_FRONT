@@ -13,7 +13,7 @@
           <transition name="logo-fade">
             <div v-if="isExpanded" class="logo-text-container">
               <h1 class="logo-title">UNSIS</h1>
-              <p class="logo-subtitle">Sistema de Exámenes</p>
+              <p class="logo-subtitle">Sistema de Horarios de Exámenes</p>
             </div>
           </transition>
         </div>
@@ -170,7 +170,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-
+import './SideBar.css'
 
 const props = defineProps({
   currentView: {
@@ -191,9 +191,23 @@ const router = useRouter()
 //  estado
 const isExpanded = ref(true)
 const hoveredItem = ref(null)
+const mostrarConfiguracion = ref(false)
 
 // menu 
 const allMenuItems = computed(() => {
+  // ADMIN → SOLO ADMINISTRADOR
+  if (props.userRole === 'admin') {
+    return [
+      {
+        id: 'usuarios',
+        title: 'Usuarios',
+        description: 'Configuración de usuarios',
+        icon: 'pi-user-edit'
+      }
+    ]
+  }
+
+  //  USUARIOS → JEFE DE CARRERA 
   const items = [
     {
       id: 'examenes',
@@ -216,12 +230,6 @@ const allMenuItems = computed(() => {
       icon: 'pi-users'
     },
     {
-      id: 'materias',
-      title: 'Materias',
-      description: 'Catálogo',
-      icon: 'pi-book'
-    },
-    {
       id: 'progreso',
       title: 'Progreso',
       description: 'Estadísticas',
@@ -229,24 +237,50 @@ const allMenuItems = computed(() => {
     }
   ]
 
-  // Opciones extra para Jefe de Carrera
+  // Opciones extra para Jefes de Carrera
   if (props.userRole === 'jefe_carrera') {
     items.push(
       {
-        id: 'sinodales',
-        title: 'Sinodales',
-        description: 'Asignar evaluadores',
-        icon: 'pi-user-plus'
-      },
-      {
-        id: 'generacion-auto',
-        title: 'Examenes Programados',
-        description: 'Creados por el sistema',
-        icon: 'pi-bolt'
+      id: 'configuracion',
+      title: 'Configuración',
+      description: mostrarConfiguracion.value
+        ? 'Ocultar opciones'
+        : 'Mostrar opciones',
+      icon: mostrarConfiguracion.value
+        ? 'pi-chevron-down'
+        : 'pi-chevron-right',
+      action: () => {
+        mostrarConfiguracion.value = !mostrarConfiguracion.value
       }
+    }
+
+    )
+    if (mostrarConfiguracion.value) {
+      items.push(
+        {
+          id: 'materias',
+          title: 'Materias',
+          description: 'Gestión de materias',
+          icon: 'pi-book'
+        },
+        {
+          id: 'sinodales',
+          title: 'Sinodales',
+          description: 'Gestión de sinodales',
+          icon: 'pi-users'
+        }
+      )
+    }
+
+    items.push(
+    {
+      id: 'generacion-auto',
+      title: 'Exámenes Programados',
+      description: 'Creados por el sistema',
+      icon: 'pi-bolt'
+    }
     )
   }
-
   return items
 })
 
@@ -275,5 +309,3 @@ const getRoleName = () => {
     : 'Servicios Escolares'
 }
 </script>
-
-<style scoped src="./Sidebar.css"></style>

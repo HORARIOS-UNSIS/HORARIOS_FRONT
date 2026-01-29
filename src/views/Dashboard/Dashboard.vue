@@ -355,11 +355,17 @@
       <div v-show="currentView === 'generacion-auto'" class="view-container">
         <AutoExamGenerator @update:currentView="currentView = $event" />
       </div>
+       <!-- Vista Usuarios -->
+      <div v-show="currentView === 'usuarios'">
+        <AdminUsuarios />
+      </div>
     </div>
   </div>
 </template>
 
 <script setup >
+import './Dashboard.css';
+import './../Calendario/Calendario.css';
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import * as examService from '../../services/examService';
@@ -369,6 +375,8 @@ import SinodalManager from '../Sinodal/SinodalManager.vue';
 import AutoExamGenerator from '../ProgramarExamen/GenerateScheduleExams.vue';
 import GruposView from '../Grupos/Grupos.vue';
 import Materias from '../Materias/Materias.vue';
+import AdminUsuarios from '../AdminUsuarios/AdminUsuarios.vue';
+
 const router = useRouter();
 
 // Estado del usuario
@@ -437,6 +445,10 @@ const verificarAutenticacion = () => {
     if (userData.carrera_id) {
       carreraSeleccionada.value = userData.carrera_id;
     }
+    
+    if (userData.rol === 'admin') {
+    currentView.value = 'usuarios'
+  }
   } catch (e) {
     router.push('/login');
   }
@@ -715,4 +727,3 @@ const verDetallesExamen = (examen) => {
   alert(`Detalles del examen:\n\nMateria: ${obtenerNombreMateria(examen.materia_id)}\nFecha: ${formatearFecha(examen.fecha)}\nHora: ${examen.hora_inicio}\nAula: ${examen.aula_id}`);
 };*/
 </script>
-<style scoped src="./Dashboard.css"></style>

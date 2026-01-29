@@ -82,12 +82,14 @@
     font-weight: 600;
     color: #4a148c;
     border-bottom: 1px solid #d1c4e9;
+    justify-content: center;
 }
 
 .data-table td {
     padding: 14px 16px;
     border-bottom: 1px solid #eee;
     color: #333;
+    justify-content: center;
 }
 
 .data-table tr:last-child td {
@@ -166,4 +168,101 @@
     margin-top: 4px;
     font-size: 12px;
     color: #b71c1c;
+}
+
+.chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.chip.computadora {
+  background: #ede7f6;
+  color: #5e35b1;
+}
+
+.chip.escrito {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.chip.active {
+  background: #d1c4e9;
+  color: #4527a0;
+}
+
+.apply-all {
+  margin-left: 8px;
+  font-size: 12px;
+  background: none;
+  border: none;
+  color: #6a1b9a;
+  cursor: pointer;
+}
+
+.check-all {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  cursor: pointer;
+  user-select: none;
+  color: #6a1b9a;
+}
+
+.checkbox {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #b39ddb;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: transparent;
+  transition: all 0.2s ease;
+}
+
+.checkbox.checked {
+  background: #7e57c2;
+  border-color: #7e57c2;
+  color: white;
+}
+
+.check-all small {
+  font-size: 12px;
+}
+
+/* Contenedor del título + checkbox */
+.th-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+/* Checkbox estilo palomita */
+.check-all {
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #999;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: white;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.checkbox.checked {
+  background: #6b4eff;
+  border-color: #6b4eff;
 }

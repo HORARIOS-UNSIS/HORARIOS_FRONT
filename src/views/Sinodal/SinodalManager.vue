@@ -17,7 +17,7 @@
 <template>
   <div class="view-container">
 
-    <!-- HEADER (igual al de Materias) -->
+    <!-- HEADER  -->
     <div class="section-header">
       <div class="section-title">
         <h3>Gestión de Sinodales</h3>
@@ -116,21 +116,23 @@
 
         <div class="modal-body">
           <div class="form-group">
-            <label>Buscar profesor</label>
-            <input
-              type="text"
-              v-model="busqueda"
-              @input="mostrarSugerencias = true"
-              @focus="mostrarSugerencias = true"
-              placeholder="Nombre o correo"
-            />
+            <label>Profesor</label>
 
             <div
-              v-if="mostrarSugerencias && sugerencias.length"
-              class="sugerencias"
+              class="dropdown-input"
+              @click="toggleProfesores"
             >
+              <span v-if="!nuevoSinodal.nombre" class="placeholder">
+                Seleccionar profesor
+              </span>
+              <span v-else>
+                {{ nuevoSinodal.nombre }}
+              </span>
+            </div>
+
+            <div v-if="mostrarProfesores" class="sugerencias">
               <div
-                v-for="prof in sugerencias"
+                v-for="prof in profesoresDisponibles"
                 :key="prof.id"
                 class="sugerencia-item"
                 @click="seleccionarProfesor(prof)"
@@ -167,82 +169,75 @@
   </div>
 </template>
 <script setup>
-//import '../Materias/Materias.css'
-import './SinodalManager.css'
-import { ref, computed } from 'vue'
+  //import '../Materias/Materias.css'
+  import './SinodalManager.css'
+  import { ref} from 'vue'
 
-const materias = ref([
-  {
-    id: 1,
-    nombre: 'Programación Orientada a Objetos',
-    semestre: 3,
-    profesor_titular: 'Dr. Ana Martínez',
-    sinodales: [
-      { nombre: 'Dr. Juan Pérez García', rol: 'Presidente' }
-    ]
-  },
-  {
-    id: 2,
-    nombre: 'Base de Datos Avanzada',
-    semestre: 4,
-    profesor_titular: 'Mtra. Laura Gómez',
-    sinodales: []
+  const modalVisible = ref(false)
+  const materiaSeleccionada = ref(null)
+  const mostrarProfesores = ref(false)
+
+
+  const materias = ref([
+    {
+      id: 1,
+      nombre: 'Programación Orientada a Objetos',
+      semestre: 3,
+      profesor_titular: 'Dr. Ana Martínez',
+      sinodales: [
+        { nombre: 'Dr. Juan Pérez García', rol: 'Presidente' }
+      ]
+    },
+    {
+      id: 2,
+      nombre: 'Base de Datos Avanzada',
+      semestre: 4,
+      profesor_titular: 'Mtra. Laura Gómez',
+      sinodales: []
+    }
+  ])
+
+  const profesoresDisponibles = ref([
+    { id: 1, nombre: 'Dr. Juan Pérez García', email: 'juan@uni.edu' },
+    { id: 2, nombre: 'Dra. María López', email: 'maria@uni.edu' }
+  ])
+
+  const nuevoSinodal = ref({
+    nombre: '',
+    rol: '',
+    email: ''
+  })
+
+  const abrirModal = (materia) => {
+    materiaSeleccionada.value = materia
+    modalVisible.value = true
+    nuevoSinodal.value = { nombre: '', rol: '', email: '' }
+    mostrarProfesores.value = false
   }
-])
 
-const profesoresDisponibles = ref([
-  { id: 1, nombre: 'Dr. Juan Pérez García', email: 'juan@uni.edu' },
-  { id: 2, nombre: 'Dra. María López', email: 'maria@uni.edu' }
-])
-
-const modalVisible = ref(false)
-const materiaSeleccionada = ref(null)
-const busqueda = ref('')
-const mostrarSugerencias = ref(false)
-
-const nuevoSinodal = ref({
-  nombre: '',
-  rol: '',
-  email: ''
-})
-
-const sugerencias = computed(() => {
-  if (!busqueda.value) return []
-  return profesoresDisponibles.value.filter(p =>
-    p.nombre.toLowerCase().includes(busqueda.value.toLowerCase()) ||
-    p.email.toLowerCase().includes(busqueda.value.toLowerCase())
-  )
-})
-
-const abrirModal = (materia) => {
-  materiaSeleccionada.value = materia
-  modalVisible.value = true
-  busqueda.value = ''
-  nuevoSinodal.value = { nombre: '', rol: '', email: '' }
-  mostrarSugerencias.value = true
-}
-
-const cerrarModal = () => {
-  modalVisible.value = false
-  materiaSeleccionada.value = null
-}
-
-const seleccionarProfesor = (prof) => {
+  const cerrarModal = () => {
+    modalVisible.value = false
+    materiaSeleccionada.value = null
+    mostrarProfesores.value = false
+  }
+  const toggleProfesores = () => {
+    mostrarProfesores.value = !mostrarProfesores.value
+  }
+  const seleccionarProfesor = (prof) => {
   nuevoSinodal.value.nombre = prof.nombre
   nuevoSinodal.value.email = prof.email
-  busqueda.value = prof.nombre
-  mostrarSugerencias.value = false
+  nuevoSinodal.value.rol = ''
+  mostrarProfesores.value = false
 }
+  const agregarSinodal = () => {
+    materiaSeleccionada.value.sinodales.push({ ...nuevoSinodal.value })
+    cerrarModal()
+  }
+  const removerSinodal = (materiaId, index) => {
+    const materia = materias.value.find(m => m.id === materiaId)
+    materia.sinodales.splice(index, 1)
+  }
 
-const agregarSinodal = () => {
-  materiaSeleccionada.value.sinodales.push({ ...nuevoSinodal.value })
-  cerrarModal()
-}
-
-const removerSinodal = (materiaId, index) => {
-  const materia = materias.value.find(m => m.id === materiaId)
-  materia.sinodales.splice(index, 1)
-}
 </script>
 
     <!--<div class="title-hero">

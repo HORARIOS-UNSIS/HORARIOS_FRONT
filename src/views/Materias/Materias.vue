@@ -29,8 +29,32 @@
             <th>Grupo</th>
             <th>Materia</th>
             <th>Profesor</th>
-            <th>Tipo de aplicación</th>
-            <th>¿Es academia?</th>
+            <th>
+              <div class="th-inline">
+                <span>Tipo de aplicación</span>
+                <div class="check-all" 
+                @click="aplicarTipoTodos = !aplicarTipoTodos"
+                title="Asignar a computadora todas las materias"
+                >
+                  <span class="checkbox" :class="{ checked: aplicarTipoTodos }">
+                    <span v-if="aplicarTipoTodos">✓</span>
+                  </span>
+                </div>
+              </div>
+            </th>
+            <th>
+              <div class="th-inline">
+                <span>¿Es academia?</span>
+                <div class="check-all" 
+                @click="aplicarAcademiaTodos = !aplicarAcademiaTodos"
+                title="Asignar Academia a todas las materias"
+                >
+                  <span class="checkbox" :class="{ checked: aplicarAcademiaTodos }">
+                    <span v-if="aplicarAcademiaTodos">✓</span>
+                  </span>
+                </div>
+              </div>
+            </th>
           </tr>
         </thead>
 
@@ -45,34 +69,25 @@
             <td>{{ m.profesor }}</td>
 
             <!-- TIPO D EXAMEN -->
-            <td>
-              <select v-model="m.tipo_aplicacion" class="select-input">
-                <option value="">Sin asignar</option>
-                <option value="escrito">Escrito</option>
-                <option value="computadora">Computadora</option>
-              </select>
+            <td class="center">
+              <button
+                class="chip"
+                :class="m.tipo_aplicacion"
+                @click="toggleTipo(m)"
+              >
+                {{ m.tipo_aplicacion === 'computadora'? 'Computadora': 'Escrito' }}
+              </button>
             </td>
 
             <!-- ACADEMIA -->
             <td class="center">
-              <div class="toggle-group">
-                <button
-                  class="toggle-btn"
-                  :class="{ active: m.es_academia === true }"
-                  @click="m.es_academia = true"
-                >
-                  Sí
-                </button>
-
-                <button
-                  class="toggle-btn"
-                  :class="{ active: m.es_academia === false }"
-                  @click="m.es_academia = false"
-                >
-                  No
-                </button>
-              </div>
-
+              <button
+                class="chip"
+                :class="{ active: m.es_academia }"
+                @click="toggleAcademia(m)"
+              >
+                {{ m.es_academia ? 'Sí' : 'No' }}
+              </button>
               <span v-if="m.es_academia === null" class="status-pending">
                 Sin asignar
               </span>
@@ -92,17 +107,20 @@
 
 <script setup>
 import './Materias.css'
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import * as examService from '../../services/examService'
 
 const materias = ref([])
 const examenesGenerados = ref(false)
 
+const aplicarTipoTodos = ref(false)
+const aplicarAcademiaTodos = ref(false)
+
 onMounted(() => {
   materias.value = examService.obtenerMateriasParaExamen().map(m => ({
     ...m,
-    tipo_aplicacion: m.tipo_aplicacion || '',
-    es_academia: null
+    tipo_aplicacion: 'computadora',
+    es_academia: false
   }))
   // verificr si ya hay examenes programados
   //examenesGenerados.value = examService.obtenerExamenes().length > 0
@@ -112,6 +130,7 @@ onMounted(() => {
 
 const bloqueado = computed(() => examenesGenerados.value)
 
+//funciones
 function guardarConfiguracion() {
   const pendientes = materias.value.filter(
     m => !m.tipo_aplicacion || m.es_academia === null
@@ -125,4 +144,40 @@ function guardarConfiguracion() {
   console.log('Configuración guardada:', materias.value)
   alert('Configuración de materias guardada correctamente ✅')
 }
+
+//funcion para aplicar los cambios a todas las materias
+
+
+function aplicarAcademiaATodos(valor) {
+  materias.value.forEach(m => (m.es_academia = valor))
+}
+
+watch(aplicarTipoTodos, (val) => {
+  if (val) {
+    materias.value.forEach(m => {
+      m.tipo_aplicacion = 'computadora'
+    })
+  }
+})
+
+watch(aplicarAcademiaTodos, (val) => {
+  if (val) {
+    materias.value.forEach(m => {
+      m.es_academia = false
+    })
+  }
+})
+
+function toggleTipo(m) {
+  aplicarTipoTodos.value = false
+  m.tipo_aplicacion =
+    m.tipo_aplicacion === 'computadora' ? 'escrito' : 'computadora'
+}
+
+function toggleAcademia(m) {
+  aplicarAcademiaTodos.value = false
+  m.es_academia = !m.es_academia
+}
+
+
 </script>

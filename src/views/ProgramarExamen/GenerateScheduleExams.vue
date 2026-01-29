@@ -1,7 +1,13 @@
 <template>
   <div class="container">
     <h2>Horario de Exámenes</h2>
-
+    <button
+      v-if="examenes.length > 0"
+      class="btn-pdf"
+      @click="generarPDF"
+    >
+      Generar PDF
+    </button>
     <table v-if="examenes.length > 0">
       <thead>
         <tr>
@@ -54,11 +60,31 @@ function generarHora(index) {
   const horas = ['08:00 - 10:00', '10:00 - 12:00', '12:00 - 14:00'];
   return horas[index % horas.length];
 }
-</script>
 
+function generarPDF() {
+  alert('Se generará el PDF del horario de exámenes');
+}
+
+</script>
+ 
 <style scoped>
 .container {
   padding: 20px;
+}
+
+.btn-pdf {
+  margin-top: 10px;
+  padding: 10px 18px;
+  background: #6a5acd;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-pdf:hover {
+  background: #5a4acb;
 }
 
 table {

@@ -77,7 +77,7 @@
       </div>
     </div>
 
-    <!-- Usuarios demo -->
+    <!-- Usuarios demo 
     <div class="demo-info">
       <div class="demo-header">📋 Usuarios de Demostración</div>
 
@@ -99,7 +99,7 @@
       <p class="demo-password">
         Contraseña para todos: <strong>pass123</strong>
       </p>
-    </div>
+    </div>-->
   </div>
 </template>
 
@@ -116,6 +116,11 @@ const rememberMe = ref(false)
 const error = ref('')
 
 const validUsers = [
+  {
+    email: 'admin@unsis.edu',
+    rol: 'admin',
+    password: 'pass123'
+  },
   {
     email: 'servicios@unsis.edu',
     rol: 'servicios_escolares',

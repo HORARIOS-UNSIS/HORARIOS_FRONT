@@ -6,7 +6,7 @@
       <div class="form-header">
         <button class="back-btn" @click="router.push('/dashboard')">←</button>
         <div>
-          <h2>Generar Exámenes</h2>
+          <h2>Generar Horarios de Exámenes</h2>
           <p>Configuración y generación automática</p>
         </div>
       </div>
@@ -49,7 +49,7 @@
           </div>
         </div>
 
-        <!-- PASO 2 -->
+        <!-- PASO 2 
         <div v-if="paso === 2" class="step-content">
           <h3>Resumen de Materias</h3>
           <p class="step-description">
@@ -116,7 +116,7 @@
             </tbody>
           </table>
 
-          <!-- MODAL -->
+          MODAL 
           <div v-if="mostrarConfirmacion" class="modal-overlay">
             <div class="modal-success">
               <h3>Confirmar cambios</h3>
@@ -134,7 +134,7 @@
           </div>
         </div>
 
-        <!-- PASO 3 -->
+        PASO 3 
         <div v-if="paso === 3" class="step-content">
           <h3>Vista Previa de Exámenes</h3>
           <p class="step-description">
@@ -163,35 +163,33 @@
               </tr>
             </tbody>
           </table>
-        </div>
+        </div>-->
 
         <!-- FOOTER -->
         <div class="form-footer">
-          <button v-if="paso > 1" 
-            class="btn-secondary" 
-            @click="pasoAtras">
-          </button>
-
-          <button
-            v-if="paso ===1 || paso ===2"
-            class="btn-primary"
-            @click="siguientePaso"
-          >
-            Siguiente
-          </button>
-
-          <button
-            v-if="paso === 3"
-            class="btn-success"
-            @click="generar"
-          >
+          <button class="btn-success" @click="generar">
             Generar Exámenes
           </button>
         </div>
 
+          <!-- MODAL EXITO -->
+        <div v-if="mostrarGenerar" class="modal-overlay">
+          <div class="modal-success">
+            <h3>Horarios generados</h3>
+            <p>Los horarios de los exámenes fueron generados correctamente.</p>
+
+            <div class="form-footer">
+              <button class="btn-success" @click="cerrarModal">
+                Aceptar
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+
 </template>
 
 <script setup>
@@ -201,6 +199,7 @@ import { useRouter } from 'vue-router'
 import * as examService from '../../services/examService'
 
 const router = useRouter()
+const mostrarGenerar = ref(false)
 
 const paso = ref(1)
 const periodo = ref('')
@@ -229,17 +228,6 @@ onMounted(() => {
 })
 
 //Funciones
-function siguientePaso() {
-  if (paso.value === 1 && (!periodo.value || !tipo.value)) {
-    alert('Completa periodo y tipo de examen')
-    return
-  }
-  if (tipo.value === 'parcial' && !parcial.value) {
-    alert('Selecciona el parcial')
-    return
-  }
-  paso.value++
-}
 
 function activarEdicionAulas() {
   respaldoAulas = materias.value.map(m => ({ id: m.id, aula: m.aula }))
@@ -260,6 +248,15 @@ function confirmarCambios() {
 }
 
 function generar() {
+  if (!periodo.value || !tipo.value) {
+    alert('Selecciona el periodo y el tipo de examen')
+    return
+  }
+
+  if (tipo.value === 'parcial' && !parcial.value) {
+    alert('Selecciona el parcial')
+    return
+  }
   examenesPreview.value.forEach(examen => {
     examService.crearExamen({
       periodo: periodo.value,
@@ -274,9 +271,7 @@ function generar() {
       estado: 'pendiente'
     })
   })
-
-  alert('Exámenes generados correctamente')
-  router.push('/dashboard')
+  mostrarGenerar.value = true
 }
 
 
@@ -306,8 +301,9 @@ const examenesPreview = computed(() => {
   }))
 })
 
-function pasoAtras() {
-  if (paso.value > 1) paso.value--
+function cerrarModal() {
+  mostrarGenerar.value = false
+  router.push('/dashboard')
 }
 
 </script>
