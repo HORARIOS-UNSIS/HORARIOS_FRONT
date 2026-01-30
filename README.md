@@ -46,6 +46,11 @@ Un sistema web moderno para la gestión y programación de exámenes académicos
    npm install
    ```
 
+   **Dependencias para generación de PDF:**
+   ```bash
+   npm install jspdf@^2.5.1 jspdf-autotable@^3.8.0
+   ```
+
 3. **Inicia el servidor de desarrollo**
    ```bash
    npm run dev
