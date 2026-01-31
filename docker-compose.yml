@@ -1,14 +1,57 @@
 services:
-  frontend:
+  horarios-frontend:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: horarios-examen-frontend
+    container_name: horarios-frontend-app
     ports:
       - "5171:8080"
+    environment:
+      - VITE_API_URL=http://localhost:8088/api
     networks:
-      - horarios-examen-network
+      - horarios-network
     restart: unless-stopped
+    depends_on:
+      - horarios-backend
+
+  horarios-backend:
+    build:
+      context: ../HORARIOS-BACK
+      dockerfile: Dockerfile
+    container_name: horarios-backend-api
+    ports:
+      - "8088:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://horarios-db:5432/prueba_examen_horario?createDatabaseIfNotExist=true&autoReconnect=true&useSSL=false&useTimezone=true&serverTimezone=America/Mexico_City&useLegacyDatetimeCode=false
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      JWT_SECRET: I6QlWcWiQJLzHY9Kdj3tYvyMsGxTHUTDEpziL2C/VYGHMDHNE83gd8sWqVxkILG9A7s7eIqYY6ugMDEja/ndA3xWyuUcJanIG23JlcK9eBygOgsgVGd/G6jjfTtwhN7a0X3zwRckjlbe3kUFB1c6/ElxYEXsQ3OcG/YxER4c0tNq6F4Ep7f067Fhnw1vzVQfnKmDGdtxcyOPRgnF1c53s9sIl3WQ+nvCGEjS/F2xSU047FAov9E1ZnprrXp7Kkbvs/wZl3D51sfdBoKEwhZt5mmmgwTpLag3DFRn9a7FNSRYi+qW7SickdpGOyjkbEYrs/wZl3D51sfdBoKEwhZt5mmmgwTpLag3DFRn9a7FNSRYi+qW7SickdpGOyjkbEYrMqlOYi7/qDcjwcn00+C04A==
+    networks:
+      - horarios-network
+    restart: unless-stopped
+    depends_on:
+      - horarios-db
+
+  horarios-db:
+    image: postgres:15
+    container_name: horarios-db
+    environment:
+      POSTGRES_DB: prueba_examen_horario
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5434:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - horarios-network
+    restart: unless-stopped
+
 networks:
-  horarios-examen-network:
+  horarios-network:
     driver: bridge
+
+volumes:
+  db_data:

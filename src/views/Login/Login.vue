@@ -97,7 +97,7 @@
       </div>
 
       <p class="demo-password">
-        Contraseña para todos: <strong>pass123</strong>
+        Contraseña para todos: <strong>password123</strong>
       </p>
     </div>-->
   </div>
@@ -107,6 +107,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import LogoApp from '../../components/LogoApp.vue'
+import { loginUser } from '../../services/authService'
 
 const router = useRouter()
 
@@ -114,65 +115,43 @@ const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const error = ref('')
+const loading = ref(false)
 
-const validUsers = [
-  {
-    email: 'admin@unsis.edu',
-    rol: 'admin',
-    password: 'pass123'
-  },
-  {
-    email: 'servicios@unsis.edu',
-    rol: 'servicios_escolares',
-    password: 'pass123'
-  },
-  {
-    email: 'jefe.informatica@unsis.edu',
-    rol: 'jefe_carrera',
-    carrera_id: 1,
-    password: 'pass123'
-  },
-  {
-    email: 'jefe.medicina@unsis.edu',
-    rol: 'jefe_carrera',
-    carrera_id: 2,
-    password: 'pass123'
-  }
-]
-
-const handleLogin = () => {
+const handleLogin = async () => {
   error.value = ''
+  loading.value = true
 
   if (!email.value || !password.value) {
     error.value = 'Todos los campos son obligatorios'
+    loading.value = false
     return
   }
 
-  const user = validUsers.find(
-    u => u.email === email.value && u.password === password.value
-  )
+  try {
+    // Llamar al servicio de autenticación del backend
+    const result = await loginUser(email.value, password.value)
 
-  if (!user) {
-    error.value = 'Correo o contraseña incorrectos'
-    return
+    if (result.success) {
+      // Guardar datos adicionales si es necesario
+      const userData = {
+        id: result.user.id,
+        username: result.user.username,
+        role: result.user.role,
+        logged_at: new Date().toISOString()
+      }
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      // Redireccionar al dashboard
+      router.push('/dashboard')
+    } else {
+      error.value = result.error || 'Error al iniciar sesión'
+    }
+  } catch (err) {
+    console.error('Error en login:', err)
+    error.value = 'Error de conexión con el servidor. Verifica que el backend esté disponible.'
+  } finally {
+    loading.value = false
   }
-
-  const userData = {
-    email: user.email,
-    rol: user.rol,
-    carrera_id: user.carrera_id || null,
-    logged_at: new Date().toISOString()
-  }
-
-  localStorage.setItem('user', JSON.stringify(userData))
-
-  if (rememberMe.value) {
-    localStorage.setItem('token', 'demo-token-' + Date.now())
-  } else {
-    sessionStorage.setItem('token', 'demo-token-' + Date.now())
-  }
-
-  router.push('/dashboard')
 }
 </script>
 
