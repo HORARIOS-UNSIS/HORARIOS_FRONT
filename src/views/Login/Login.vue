@@ -29,13 +29,13 @@
 
         <form @submit.prevent="handleLogin" class="login-form">
           <div class="form-group">
-            <label for="email">Usuario</label>
+            <label for="username">Usuario</label>
             <div class="input-wrapper">
               <input
-                v-model="email"
-                type="email"
-                id="email"
-                placeholder="usuario@unsis.edu"
+                v-model="username"
+                type="text"
+                id="username"
+                placeholder="jefe"
                 required
               />
               <i class="pi pi-user"></i>
@@ -111,7 +111,7 @@ import { loginUser } from '../../services/authService'
 
 const router = useRouter()
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const error = ref('')
@@ -121,34 +121,23 @@ const handleLogin = async () => {
   error.value = ''
   loading.value = true
 
-  if (!email.value || !password.value) {
+  if (!username.value || !password.value) {
     error.value = 'Todos los campos son obligatorios'
     loading.value = false
     return
   }
 
   try {
-    // Llamar al servicio de autenticación del backend
-    const result = await loginUser(email.value, password.value)
+    const result = await loginUser(username.value, password.value)
 
     if (result.success) {
-      // Guardar datos adicionales si es necesario
-      const userData = {
-        id: result.user.id,
-        username: result.user.username,
-        role: result.user.role,
-        logged_at: new Date().toISOString()
-      }
-      localStorage.setItem('user', JSON.stringify(userData))
-
-      // Redireccionar al dashboard
       router.push('/dashboard')
     } else {
       error.value = result.error || 'Error al iniciar sesión'
     }
   } catch (err) {
     console.error('Error en login:', err)
-    error.value = 'Error de conexión con el servidor. Verifica que el backend esté disponible.'
+    error.value = 'Error de conexión con el servidor'
   } finally {
     loading.value = false
   }

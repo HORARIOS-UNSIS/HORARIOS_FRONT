@@ -381,7 +381,8 @@ const router = useRouter();
 
 // Estado del usuario
 const usuarioEmail = ref('');
-const usuarioRol = ref('servicios_escolares');
+const usuarioUsername = ref('');
+const usuarioRol = ref('servicios_escolares'); // Por defecto servicios_escolares, puede ser jefe_carrera, admin
 const usuarioCarrera = ref(null);
 const currentView = ref('examenes');
 
@@ -399,7 +400,12 @@ const diSeleccionado = ref(null);
 
 // Propiedades computadas
 const tipoRol = computed(() => {
-  return usuarioRol.value === 'servicios_escolares' ? 'Servicios Escolares' : 'Jefe de Carrera';
+  const rolMap = {
+    'servicios_escolares': 'Servicios Escolares',
+    'jefe_carrera': 'Jefe de Carrera',
+    'admin': 'Administrador'
+  };
+  return rolMap[usuarioRol.value] || 'Usuario';
 });
 
 const carrerasDisponibles = computed(() => {
@@ -407,9 +413,10 @@ const carrerasDisponibles = computed(() => {
 });
 
 const examenesVisibles = computed(() => {
-  if (usuarioRol.value === 'servicios_escolares') {
+  if (usuarioRol.value === 'servicios_escolares' || usuarioRol.value === 'admin') {
     return examenesData.value;
   }
+  // Para jefe_carrera: filtrar por carrera
   return examenesData.value.filter((exam) => {
     const grupo = gruposData.value.find((g) => g.id === exam.grupo_id);
     return grupo?.carrera_id === carreraSeleccionada.value;
@@ -417,9 +424,10 @@ const examenesVisibles = computed(() => {
 });
 
 const gruposVisibles = computed(() => {
-  if (usuarioRol.value === 'servicios_escolares') {
+  if (usuarioRol.value === 'servicios_escolares' || usuarioRol.value === 'admin') {
     return gruposData.value;
   }
+  // Para jefe_carrera: filtrar por carrera
   return gruposData.value.filter((g) => g.carrera_id === carreraSeleccionada.value);
 });
 
@@ -438,17 +446,27 @@ const verificarAutenticacion = () => {
 
   try {
     const userData = JSON.parse(user);
-    usuarioEmail.value = userData.email;
-    usuarioRol.value = userData.rol;
+    usuarioEmail.value = userData.email || userData.username;
+    usuarioUsername.value = userData.username;
+    
+    // Mapear roles del backend (JEFE, SERV, ADMIN) a valores del frontend
+    const roleBackend = userData.role || userData.rol;
+    const roleMap = {
+      'JEFE': 'jefe_carrera',
+      'SERV': 'servicios_escolares',
+      'ADMIN': 'admin'
+    };
+    usuarioRol.value = roleMap[roleBackend] || 'servicios_escolares';
+    
     usuarioCarrera.value = userData.carrera_id;
 
     if (userData.carrera_id) {
       carreraSeleccionada.value = userData.carrera_id;
     }
     
-    if (userData.rol === 'admin') {
-    currentView.value = 'usuarios'
-  }
+    if (roleBackend === 'ADMIN') {
+      currentView.value = 'usuarios'
+    }
   } catch (e) {
     router.push('/login');
   }

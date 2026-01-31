@@ -306,6 +306,8 @@ const handleLogout = () => {
 const getRoleName = () => {
   return props.userRole === 'jefe_carrera'
     ? 'Jefe de Carrera'
+    : props.userRole === 'admin'
+    ? 'Administrador'
     : 'Servicios Escolares'
 }
 </script>

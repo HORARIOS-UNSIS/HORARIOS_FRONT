@@ -14,7 +14,7 @@ export async function loginUser(username, password) {
     
     const { token, role, idUsuario, username: user } = response.data;
     
-    // Guardar token y datos de usuario
+    // Guardar token y datos de usuario en localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify({
       id: idUsuario,
