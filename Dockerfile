@@ -1,22 +1,14 @@
-FROM node:20-alpine
+# Dockerfile simple: copiar solo los archivos compilados
+FROM nginx:alpine
 
-WORKDIR /app
+# Copiar archivos compilados en dist/ (ya compilado localmente)
+COPY dist/* /usr/share/nginx/html/
 
-# Copiar package.json e instalar dependencias
-COPY package.json /app/package.json
-RUN npm install
-
-# Copiar archivos y carpetas al contenedor
-COPY . .
-
-# Construir la aplicación para producción
-RUN npm run build
-
-# Usar serve como servidor
-RUN npm install -g serve
+# Copiar configuración de nginx para SPA
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Exponer el puerto 
-EXPOSE 8080
+EXPOSE 5173
 
-# Comando para servir la aplicación
-CMD [ "serve", "-s", "dist", "-l", "8080" ]
+# Comando para iniciar nginx
+CMD ["nginx", "-g", "daemon off;"]
