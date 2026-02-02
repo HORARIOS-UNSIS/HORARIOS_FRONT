@@ -12,14 +12,15 @@ export async function loginUser(username, password) {
       password
     });
     
-    const { token, role, idUsuario, username: user } = response.data;
+    const { token, role, idUsuario, username: user, ...restData } = response.data;
     
     // Guardar token y datos de usuario en localStorage
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify({
       id: idUsuario,
       username: user,
-      role: role
+      role: role,
+      ...restData // Guardar cualquier otro dato extra (email, carrera, claveCarrera, etc.)
     }));
     
     return {
@@ -28,7 +29,8 @@ export async function loginUser(username, password) {
       user: {
         id: idUsuario,
         username: user,
-        role: role
+        role: role,
+        ...restData
       }
     };
   } catch (error) {

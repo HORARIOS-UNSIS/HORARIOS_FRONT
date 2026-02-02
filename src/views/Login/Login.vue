@@ -36,6 +36,7 @@
                 type="text"
                 id="username"
                 placeholder="jefe"
+                autocomplete="username"
                 required
               />
               <i class="pi pi-user"></i>
@@ -50,6 +51,7 @@
                 type="password"
                 id="password"
                 placeholder="••••••••"
+                autocomplete="current-password"
                 required
               />
               <i class="pi pi-lock"></i>

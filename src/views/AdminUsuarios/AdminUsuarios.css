@@ -151,3 +151,42 @@ input:checked + .slider::before {
   font-weight: 500;
   border-left: 4px solid #d9768f;
 }
+
+/* Scroll para la tabla */
+.table-container {
+  max-height: calc(100vh - 380px); /* Altura dinámica ajustada al viewport */
+  min-height: 200px;               /* Altura mínima garantizada */
+  overflow-y: auto;                /* Scroll vertical */
+  overflow-x: auto;                /* Scroll horizontal si es necesario */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+  border: 1px solid #f0f0f0;
+  padding-bottom: 20px;
+}
+
+/* Personalización del scrollbar */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.table-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Encabezado fijo */
+.custom-table th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc; /* Color ligeramente distinto al fondo blanco */
+  z-index: 10;
+}
+

@@ -47,7 +47,7 @@
             </td>
             <td>
           <span v-if="u.rol === 'JEFE'">
-          {{ u.carrera }}
+          {{ mapCarreras[u.claveCarrera] || u.claveCarrera }}
         </span>
           <span v-else class="text-muted">
     —
@@ -138,34 +138,40 @@
 
 <script setup>
 import './AdminUsuarios.css'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { crearUsuario as crearUsuarioService, obtenerUsuarios as obtenerUsuariosService } from '../../services/backendService'
 
-/* ===== CARRERAS ===== */
-const carreras = [
-  'Administración Municipal',
-  'Administración Pública',
-  'Ciencias Biomédicas',
-  'Ciencias Empresariales',
-  'Enfermería',
-  'Informática',
-  'Medicina',
-  'Nutrición',
-  'Odontología'
-]
+/* ===== CARRERAS Y CLAVES ===== */
+const mapCarreras = {
+  "01": "LICENCIATURA EN ADMINISTRACIÓN MUNICIPAL",
+  "03": "LICENCIATURA EN ENFERMERÍA",
+  "04": "LICENCIATURA EN CIENCIAS EMPRESARIALES",
+  "05": "LICENCIATURA EN ADMINISTRACIÓN PÚBLICA",
+  "06": "LICENCIATURA EN INFORMÁTICA",
+  "07": "LICENCIATURA EN NUTRICIÓN",
+  "08": "MAESTRÍA EN PLANEACIÓN ESTRATÉGICA MUNICIPAL",
+  "09": "MAESTRÍA EN SALUD PÚBLICA",
+  "10": "MAESTRÍA EN GOBIERNO ELECTRÓNICO",
+  "11": "DOCTORADO EN GOBIERNO ELECTRÓNICO",
+  "12": "INGLÉS",
+  "14": "LICENCIATURA EN ODONTOLOGÍA",
+  "15": "LICENCIATURA EN MEDICINA",
+  "15POS": "MAESTRÍA EN ADMINISTRACIÓN UNIVERSITARIA",
+  "16A": "LICENCIATURA EN CIENCIAS BIOMÉDICAS"
+}
+
+const carreras = Object.values(mapCarreras)
 
 /* ===== USUARIOS ===== */
-const usuarios = ref([
-  {
-    idUsuario: 1,
-    nombre: 'Administrador',
-    email: 'admin@uni.edu',
-    username: 'admin',
-    password: '',
-    rol: 'ADMIN',
-    carrera: null,
-    activo: true
+const usuarios = ref([])
+
+onMounted(async () => {
+  try {
+    usuarios.value = await obtenerUsuariosService()
+  } catch (error) {
+    console.error('Error al cargar usuarios:', error)
   }
-])
+})
 
 const mostrarModal = ref(false)
 const errorModal = ref('')
@@ -191,7 +197,7 @@ const carrerasDisponibles = computed(() => {
 })
 
 /* ===== CREAR USUARIO ===== */
-const crearUsuario = () => {
+const crearUsuario = async () => {
   errorModal.value = ''
 
   // Campos obligatorios
@@ -217,21 +223,48 @@ const crearUsuario = () => {
     return
   }
 
-  // Validar carrera si es JEFE
-  if (
-    nuevoUsuario.value.rol === 'JEFE' &&
-    !nuevoUsuario.value.carrera
-  ) {
-    errorModal.value = 'Debe seleccionar una carrera'
-    return
+  // Validar carrera si es JEFE y obtener clave
+  let claveCarrera = null
+  if (nuevoUsuario.value.rol === 'JEFE') {
+    if (!nuevoUsuario.value.carrera) {
+      errorModal.value = 'Debe seleccionar una carrera'
+      return
+    }
+    // Encontrar clave (key) por valor (nombre)
+    claveCarrera = Object.keys(mapCarreras).find(key => mapCarreras[key] === nuevoUsuario.value.carrera)
   }
 
-  usuarios.value.push({
-    idUsuario: usuarios.value.length + 1,
-    ...nuevoUsuario.value
-  })
+  try {
+    // Payload para el backend
+    const payload = {
+      nombre: nuevoUsuario.value.nombre,
+      email: nuevoUsuario.value.email,
+      username: nuevoUsuario.value.username,
+      password: nuevoUsuario.value.password,
+      rol: nuevoUsuario.value.rol,
+      claveCarrera: claveCarrera
+    }
 
-  cerrarModal()
+    // Llamada al servicio
+    const res = await crearUsuarioService(payload)
+
+    // Actualizar lista local
+    usuarios.value.push({
+      idUsuario: res.id || usuarios.value.length + 1, // Fallback si no devuelve ID
+      nombre: payload.nombre,
+      email: payload.email,
+      username: payload.username,
+      rol: payload.rol,
+      claveCarrera: payload.claveCarrera,
+      activo: true
+    })
+
+    cerrarModal()
+
+  } catch (error) {
+    console.error(error)
+    errorModal.value = 'Error al guardar usuario en el servidor'
+  }
 }
 
 
