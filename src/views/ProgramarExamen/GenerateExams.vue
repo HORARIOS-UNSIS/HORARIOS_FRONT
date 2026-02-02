@@ -46,125 +46,18 @@
                 </option>
               </select>
             </div>
-          </div>
-        </div>
 
-        <!-- PASO 2 
-        <div v-if="paso === 2" class="step-content">
-          <h3>Resumen de Materias</h3>
-          <p class="step-description">
-            Las aulas se asignan automáticamente. Puedes modificarlas si lo deseas.
-          </p>
+            <div class="form-group">
+              <label>Fecha de Inicio</label>
+              <input type="date" v-model="fechaInicio" />
+            </div>
 
-          <div class="table-actions">
-            <button
-              v-if="!modoEdicionAulas"
-              class="btn-secondary"
-              @click="activarEdicionAulas"
-            >
-              Editar aulas
-            </button>
-
-            <button
-              v-if="modoEdicionAulas"
-              class="btn-success"
-              @click="mostrarConfirmacion = true"
-            >
-              Confirmar cambios
-            </button>
-
-            <button
-              v-if="modoEdicionAulas"
-              class="btn-secondary"
-              @click="cancelarEdicionAulas"
-            >
-              Cancelar
-            </button>
-          </div>
-
-          <table class="exam-table">
-            <thead>
-              <tr>
-                <th>Semestre</th>
-                <th>Materia</th>
-                <th>Aplicación</th>
-                <th>Aula</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="m in materias" :key="m.id">
-                <td>Semestre {{ m.semestre }}</td>
-                <td>{{ m.nombre }}</td>
-                <td>
-                  <span class="badge" :class="m.tipo_aplicacion">
-                    {{ m.tipo_aplicacion }}
-                  </span>
-                </td>
-                <td>
-                  <span v-if="!modoEdicionAulas">{{ m.aula }}</span>
-                  <select v-else v-model="m.aula">
-                    <option
-                      v-for="a in aulas"
-                      :key="a.id"
-                      :value="a.nombre"
-                    >
-                      {{ a.nombre }}
-                    </option>
-                  </select>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          MODAL 
-          <div v-if="mostrarConfirmacion" class="modal-overlay">
-            <div class="modal-success">
-              <h3>Confirmar cambios</h3>
-              <p>¿Estás seguro de modificar las aulas asignadas?</p>
-
-              <div class="form-footer">
-                <button class="btn-secondary" @click="mostrarConfirmacion = false">
-                  Cancelar
-                </button>
-                <button class="btn-success" @click="confirmarCambios">
-                  Sí, confirmar
-                </button>
-              </div>
+            <div class="form-group">
+              <label>Fecha de Fin</label>
+              <input type="date" v-model="fechaFin" />
             </div>
           </div>
         </div>
-
-        PASO 3 
-        <div v-if="paso === 3" class="step-content">
-          <h3>Vista Previa de Exámenes</h3>
-          <p class="step-description">
-            Revisa cómo quedarán programados los exámenes antes de confirmarlos.
-          </p>
-
-          <table class="exam-table">
-            <thead>
-              <tr>
-                <th>Grupo</th>
-                <th>Materia</th>
-                <th>Profesor</th>
-                <th>Fecha</th>
-                <th>Hora</th>
-                <th>Aula</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="ex in examenesPreview" :key="ex.id">
-                <td>{{ ex.grupo }}</td>
-                <td>{{ ex.materia }}</td>
-                <td>{{ ex.profesor }}</td>
-                <td>{{ ex.fecha }}</td>
-                <td>{{ ex.hora }}</td>
-                <td>{{ ex.aula }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>-->
-
         <!-- FOOTER -->
         <div class="form-footer">
           <button class="btn-success" @click="generar">
@@ -205,6 +98,8 @@ const paso = ref(1)
 const periodo = ref('')
 const tipo = ref('')
 const parcial = ref('')
+const fechaInicio = ref('')
+const fechaFin = ref('')
 const materias = ref([])
 const aulas = ref([])
 
@@ -257,6 +152,18 @@ function generar() {
     alert('Selecciona el parcial')
     return
   }
+
+  if (!fechaInicio.value || !fechaFin.value) {
+    alert('Selecciona el rango de fechas para los exámenes')
+    return
+  }
+  
+  // Validar que inicio no sea mayor que fin
+  if (new Date(fechaInicio.value) > new Date(fechaFin.value)) {
+    alert('La fecha de inicio no puede ser posterior a la fecha de fin')
+    return
+  }
+
   examenesPreview.value.forEach(examen => {
     examService.crearExamen({
       periodo: periodo.value,
@@ -290,12 +197,29 @@ function generarRango(inicio, fin) {
 const examenesPreview = computed(() => {
   if (!tipo.value) return []
 
+  let fechasDisponibles = []
+  
+  // Usar rango seleccionado si existe
+  if (fechaInicio.value && fechaFin.value) {
+    if (new Date(fechaInicio.value) <= new Date(fechaFin.value)) {
+      fechasDisponibles = generarRango(fechaInicio.value, fechaFin.value)
+    }
+  } 
+  
+  // Fallback a rangos predefinidos (opcional)
+  if (fechasDisponibles.length === 0 && rangos[tipo.value]) {
+    fechasDisponibles = rangos[tipo.value]
+  }
+
+  // Si no hay fechas, no se genera nada (o se maneja el error en guardar)
+  if (fechasDisponibles.length === 0) return []
+
   return materias.value.map((materia, index) => ({
     id: materia.id,
     grupo: materia.grupo,
     materia: materia.nombre,
     profesor: materia.profesor,
-    fecha: rangos[tipo.value][index % rangos[tipo.value].length],
+    fecha: fechasDisponibles[index % fechasDisponibles.length],
     hora: materia.hora_clase || '08:00',
     aula: materia.aula
   }))
