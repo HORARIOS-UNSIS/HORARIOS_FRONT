@@ -137,6 +137,28 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
+  
+  /* Scroll */
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+  padding-right: 5px; /* Evitar que el scroll tape contenido */
+  padding-bottom: 20px;
+}
+
+/* Personalización del scrollbar */
+.cards-grid::-webkit-scrollbar {
+  width: 8px;
+}
+.cards-grid::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+.cards-grid::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+.cards-grid::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 .card {

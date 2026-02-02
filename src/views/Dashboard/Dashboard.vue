@@ -259,54 +259,12 @@
       </div>
 
       <!-- Vista Grupos -->
-      <div v-show="currentView === 'grupos'">
+      <div v-if="currentView === 'grupos'">
         <GruposView 
-        :grupos="gruposVisibles"
         :usuarioRol="usuarioRol"
         :carreraSeleccionada="carreraSeleccionada"
         />
       </div>
-      <!--
-      <div v-show="currentView === 'grupos'" class="view-container">
-        <div class="section-header">
-          <div class="section-title">
-            <h3>Grupos Académicos</h3>
-            <span class="count-badge">{{ gruposVisibles.length }}</span>
-          </div>
-        </div>
-
-        <div v-if="gruposVisibles.length > 0" class="cards-grid">
-          <div v-for="grupo in gruposVisibles" :key="grupo.id" class="card">
-            <div class="card-header">
-              <h4>{{ grupo.nombre }}</h4>
-              <span class="semester-badge">{{ grupo.semestre }}º Semestre</span>
-            </div>
-            <div class="card-body">
-              <div class="card-item">
-                <span class="label">Carrera:</span>
-                <span class="value">{{ obtenerNombreCarrera(grupo.carrera_id) }}</span>
-              </div>
-              <div class="card-item">
-                <span class="label">Materia:</span>
-                <span class="value">{{ obtenerNombreMateria(grupo.materia_id) }}</span>
-              </div>
-              <div class="card-item">
-                <span class="label">Capacidad:</span>
-                <span class="value">{{ grupo.capacidad_alumnos }} estudiantes</span>
-              </div>
-              <div class="card-item">
-                <span class="label">Aula:</span>
-                <span class="value">{{ grupo.aula_id }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-else class="empty-state">
-          <i class="pi pi-inbox"></i>
-          <p>No hay grupos disponibles</p>
-        </div>
-      </div>
-      -->
 
       <!-- Vista Materias -->
       <div v-show="currentView === 'materias'">
@@ -347,16 +305,16 @@
       </div>
 
       <!-- Vista Sinodales (Solo Jefes de Carrera) -->
-      <div v-show="currentView === 'sinodales'" class="view-container">
+      <div v-if="currentView === 'sinodales'" class="view-container">
         <SinodalManager />
       </div>
 
       <!-- Vista Generación Automática (Solo Jefes de Carrera) -->
-      <div v-show="currentView === 'generacion-auto'" class="view-container">
+      <div v-if="currentView === 'generacion-auto'" class="view-container">
         <AutoExamGenerator @update:currentView="currentView = $event" />
       </div>
        <!-- Vista Usuarios -->
-      <div v-show="currentView === 'usuarios'">
+      <div v-if="currentView === 'usuarios'">
         <AdminUsuarios />
       </div>
     </div>
@@ -446,7 +404,7 @@ const verificarAutenticacion = () => {
 
   try {
     const userData = JSON.parse(user);
-    usuarioEmail.value = userData.email || userData.username;
+    usuarioEmail.value = userData.email || userData.username || 'Usuario';
     usuarioUsername.value = userData.username;
     
     // Mapear roles del backend (JEFE, SERV, ADMIN) a valores del frontend
@@ -458,16 +416,18 @@ const verificarAutenticacion = () => {
     };
     usuarioRol.value = roleMap[roleBackend] || 'servicios_escolares';
     
-    usuarioCarrera.value = userData.carrera_id;
+    const carrera = userData.carrera_id || userData.claveCarrera; // Compatibilidad con ambos nombres
+    usuarioCarrera.value = carrera;
 
-    if (userData.carrera_id) {
-      carreraSeleccionada.value = userData.carrera_id;
+    if (carrera) {
+      carreraSeleccionada.value = carrera;
     }
     
     if (roleBackend === 'ADMIN') {
       currentView.value = 'usuarios'
     }
   } catch (e) {
+    console.error('Error de autenticación:', e);
     router.push('/login');
   }
 };

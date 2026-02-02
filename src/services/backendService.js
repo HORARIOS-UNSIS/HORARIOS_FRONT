@@ -205,6 +205,43 @@ export async function obtenerHorariosPorMateria(idMateria) {
   }
 }
 
+// ===== USUARIOS =====
+export async function obtenerUsuarios() {
+  try {
+    const response = await apiClient.get('/users');
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo usuarios:', error);
+    return [];
+  }
+}
+
+// ===== GRUPOS =====
+export async function obtenerGruposPorCarreraYPeriodo(claveCarrera, clavePeriodo) {
+  try {
+    const response = await apiClient.get('/groups', {
+      params: {
+        claveCarrera,
+        clavePeriodo
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo grupos:', error);
+    return [];
+  }
+}
+
+export async function crearUsuario(usuario) {
+  try {
+    const response = await apiClient.post('/users', usuario);
+    return response.data;
+  } catch (error) {
+    console.error('Error creando usuario:', error);
+    throw error;
+  }
+}
+
 // ===== UTILIDADES =====
 export async function obtenerNombreProfesor(id) {
   const profesor = await obtenerProfesor(id);
