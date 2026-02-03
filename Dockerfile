@@ -1,14 +1,33 @@
-# Dockerfile simple: copiar solo los archivos compilados
-FROM nginx:alpine
+# Etapa 1: Compilación
+FROM node:20-alpine AS build
 
-# Copiar archivos compilados en dist/ (ya compilado localmente)
-COPY dist/* /usr/share/nginx/html/
+WORKDIR /app
 
-# Copiar configuración de nginx para SPA
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copiar package.json y package-lock.json
+COPY package*.json ./
+
+# Instalar dependencias
+RUN npm ci
+
+# Copiar el código fuente
+COPY . .
+
+# Compilar la aplicación
+RUN npm run build
+
+# Etapa 2: Producción con servidor HTTP simple
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar serve para servir archivos estáticos
+RUN npm install -g serve
+
+# Copiar archivos compilados desde la etapa de build
+COPY --from=build /app/dist /app/dist
 
 # Exponer el puerto 
-EXPOSE 5173
+EXPOSE 5171
 
-# Comando para iniciar nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Comando para servir los archivos estáticos
+CMD ["serve", "-s", "dist", "-l", "5171"]

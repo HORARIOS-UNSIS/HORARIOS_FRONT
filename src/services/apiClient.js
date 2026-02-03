@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Configurar la URL base del API
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8088/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://132.18.38.133:8089/api';
 
 // Crear instancia de axios con configuración
 const apiClient = axios.create({
