@@ -267,11 +267,10 @@
       </div>
 
       <!-- Vista Materias -->
-      <div v-show="currentView === 'materias'">
+      <div v-if="currentView === 'materias'">
         <Materias
-          v-show="currentView === 'materias'"
-          :materias="materiasData"
-          :carreras="carrerasData"
+          :usuarioRol="usuarioRol"
+          :carreraSeleccionada="carreraSeleccionada"
         />
       </div>
       <!-- Vista de programacion de exaenes -->
@@ -305,8 +304,11 @@
       </div>
 
       <!-- Vista Sinodales (Solo Jefes de Carrera) -->
-      <div v-if="currentView === 'sinodales'" class="view-container">
-        <SinodalManager />
+      <div v-if="currentView === 'sinodales'">
+        <SinodalManager 
+          :usuarioRol="usuarioRol"
+          :carreraSeleccionada="carreraSeleccionada"
+        />
       </div>
 
       <!-- Vista Generación Automática (Solo Jefes de Carrera) -->

@@ -8,7 +8,7 @@ import apiClient from './apiClient';
 // ===== PROFESORES =====
 export async function obtenerProfesores() {
   try {
-    const response = await apiClient.get('/teachers');
+    const response = await apiClient.get('/teachers', { skipAuthRedirect: true });
     return response.data.map(prof => ({
       id: prof.idProfesor,
       nombre: prof.nombre,
@@ -41,6 +41,21 @@ export async function obtenerMaterias() {
     }));
   } catch (error) {
     console.error('Error obteniendo materias:', error);
+    return [];
+  }
+}
+
+export async function obtenerMateriasPorCarreraYPeriodo(claveCarrera, clavePeriodo) {
+  try {
+    const response = await apiClient.get('/subjects', {
+      params: {
+        claveCarrera,
+        clavePeriodo
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo materias por carrera:', error);
     return [];
   }
 }
@@ -114,6 +129,45 @@ export async function obtenerSinodales() {
   }
 }
 
+export async function obtenerAsignacionesSinodales(claveCarrera, clavePeriodo) {
+  try {
+    const response = await apiClient.get('/synodals/assignments', {
+      params: {
+        carrera: claveCarrera,
+        periodo: clavePeriodo
+      },
+      skipAuthRedirect: true
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 401) {
+       console.warn('Endpoint /synodals/assignments no disponible o no autorizado.');
+    }
+    console.error('Error obteniendo asignaciones de sinodales:', error);
+    return [];
+  }
+}
+
+export async function asignarSinodal(datos) {
+  try {
+    const response = await apiClient.post('/synodals', datos);
+    return response.data;
+  } catch (error) {
+    console.error('Error asignando sinodal:', error);
+    throw error;
+  }
+}
+
+export async function eliminarSinodal(id) {
+  try {
+    await apiClient.delete(`/synodals/${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error eliminando sinodal:', error);
+    throw error;
+  }
+}
+
 export async function obtenerSinodalesPorMateria(idMateria) {
   try {
     const response = await apiClient.get(`/synodals/materia/${idMateria}`);
@@ -141,6 +195,22 @@ export async function obtenerHorarios() {
     return response.data;
   } catch (error) {
     console.error('Error obteniendo horarios:', error);
+    return [];
+  }
+}
+
+export async function obtenerHorariosFiltrados(claveCarrera, clavePeriodo) {
+  try {
+    const response = await apiClient.get('/schedules/filtrar', {
+      params: {
+        claveCarrera,
+        clavePeriodo
+      },
+      skipAuthRedirect: true
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo horarios filtrados:', error);
     return [];
   }
 }
@@ -223,7 +293,8 @@ export async function obtenerGruposPorCarreraYPeriodo(claveCarrera, clavePeriodo
       params: {
         claveCarrera,
         clavePeriodo
-      }
+      },
+      skipAuthRedirect: true
     });
     return response.data;
   } catch (error) {
@@ -238,6 +309,16 @@ export async function crearUsuario(usuario) {
     return response.data;
   } catch (error) {
     console.error('Error creando usuario:', error);
+    throw error;
+  }
+}
+
+export async function generarHorariosAuto(datos) {
+  try {
+    const response = await apiClient.post('/schedules/generate', datos);
+    return response.data;
+  } catch (error) {
+    console.error('Error generando horarios:', error);
     throw error;
   }
 }

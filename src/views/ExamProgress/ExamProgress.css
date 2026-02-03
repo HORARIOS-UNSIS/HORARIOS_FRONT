@@ -294,6 +294,25 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  max-height: 320px; /* Altura para aprox. 4 exámenes */
+  overflow-y: auto;  /* Habilitar scroll */
+  padding-right: 6px; /* Espacio para el scrollbar */
+}
+
+/* Scrollbar personalizado */
+.exams-list::-webkit-scrollbar {
+  width: 6px;
+}
+.exams-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+.exams-list::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+.exams-list::-webkit-scrollbar-thumb:hover {
+  background: #b1b5bb;
 }
 
 .exam-item {

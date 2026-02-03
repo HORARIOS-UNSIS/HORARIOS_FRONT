@@ -130,7 +130,7 @@ const handleLogin = async () => {
   }
 
   try {
-    const result = await loginUser(username.value, password.value)
+    const result = await loginUser(username.value.trim(), password.value.trim())
 
     if (result.success) {
       router.push('/dashboard')

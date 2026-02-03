@@ -1,5 +1,12 @@
 <template>
   <div class="container">
+    <!-- DEBUG TEMPORAL: Eliminar tras verificar -->
+    <details style="margin-bottom: 20px; background: #eee; padding: 10px;">
+      <summary>Ver estructura de datos (DEBUG)</summary>
+      <div style="font-weight: bold; margin-bottom: 5px;">Carrera consultada: {{ dbgCarrera }}</div>
+      <pre>{{ examenes.length > 0 ? JSON.stringify(examenes[0], null, 2) : 'Sin datos' }}</pre>
+    </details>
+
     <div v-if="examenes.length > 0">
       <!-- Encabezado del calendario -->
       <div class="header-calendario">
@@ -27,13 +34,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="e in examenesGrupo" :key="e.id">
+            <tr v-for="e in examenesGrupo" :key="e.idExamen || e.id">
               <td>{{ e.grupo }}</td>
-              <td>{{ e.materia }}</td>
-              <td>{{ e.academico_titular }}</td>
+              <td>{{ getMateria(e) }}</td>
+              <td>{{ getProfesor(e) }}</td>
               <td>{{ e.fecha }}</td>
-              <td>{{ e.hora }}</td>
-              <td>{{ e.aula }}</td>
+              <td>{{ getHora(e) }}</td>
+              <td>{{ getAula(e) }}</td>
             </tr>
           </tbody>
         </table>
@@ -47,8 +54,22 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import pdfService from '../../services/pdfService';
+import { 
+  obtenerHorariosFiltrados, 
+  obtenerMaterias, 
+  obtenerProfesores, 
+  obtenerAulas, 
+  obtenerHorariosEscolares 
+} from '../../services/backendService';
+import { getUser } from '../../services/authService';
 
 const examenes = ref([]);
+const dbgCarrera = ref('');
+const materiasMap = ref({});
+const profesoresMap = ref({});
+const aulasMap = ref({});
+const horariosMap = ref({});
+
 const fechaInicio = ref('03 DE FEBRERO');
 const fechaFin = ref('09 DE FEBRERO DE 2026');
 const licenciatura = ref('LICENCIATURA EN CIENCIAS EMPRESARIALES');
@@ -68,6 +89,23 @@ const examenesPorGrupo = computed(() => {
 });
 
 onMounted(async () => {
+  // Cargar catálogos auxiliares primero
+  try {
+    const [materias, profesores, aulas, horarios] = await Promise.all([
+      obtenerMaterias(),
+      obtenerProfesores(),
+      obtenerAulas(),
+      obtenerHorariosEscolares()
+    ]);
+
+    materias.forEach(m => materiasMap.value[m.id] = m.nombre);
+    profesores.forEach(p => profesoresMap.value[p.id] = p.nombre);
+    aulas.forEach(a => aulasMap.value[a.id] = a.nombre);
+    horarios.forEach(h => horariosMap.value[h.id] = `${h.inicio} - ${h.fin}`);
+  } catch (err) {
+    console.error("Error cargando catálogos", err);
+  }
+
   // Primero intentar cargar desde localStorage
   if (typeof window !== 'undefined' && window.localStorage) {
     try {
@@ -75,13 +113,7 @@ onMounted(async () => {
       
       if (dataLocal) {
         const data = JSON.parse(dataLocal);
-        examenes.value = data.map((e, index) => ({
-          ...e,
-          hora: e.hora || generarHora(index),
-          aula: e.aula || `Aula ${index + 1}`,
-          grupo: e.grupo || '104A',
-          academico_titular: e.academico_titular || e.sinodal || 'Por asignar'
-        }));
+        examenes.value = data;
         return;
       }
     } catch (error) {
@@ -89,19 +121,79 @@ onMounted(async () => {
     }
   }
 
-  // Si no hay datos en localStorage, cargar desde el JSON
+  // Si no hay datos en localStorage, cargar desde el endpoint
   try {
-    const response = await fetch('/examenes_ejemplo.json');
-    if (response.ok) {
-      const data = await response.json();
+    const user = getUser();
+    let clave = user?.claveCarrera;
+    
+    // Normalizar clave carrera
+    if (clave) {
+       clave = String(clave);
+       if (clave.length === 1) clave = '0' + clave;
+    }
+    
+    // Si no es jefe (o no tiene clave), usar '06'
+    // OJO: Si el usuario es ADMIN o SERV, tal vez no tenga carrera. 
+    // Usar '06' por defecto para pruebas, o vacío.
+    const claveCarrera = clave || '06'; 
+    dbgCarrera.value = claveCarrera; // Para debug
+
+    const data = await obtenerHorariosFiltrados(claveCarrera, '2526A');
+    if (data && data.length > 0) {
       examenes.value = data;
-      console.log('Exámenes cargados desde JSON:', data);
+      console.log('Exámenes cargados desde API:', data);
     }
   } catch (error) {
-    console.error('Error al cargar exámenes desde JSON:', error);
+    console.error('Error al cargar exámenes desde API:', error);
     examenes.value = [];
   }
 });
+
+function getMateria(e) {
+  if (e.nombreMateria || e.materia || e.nombre_materia || e.subject) {
+      return e.nombreMateria || e.materia || e.nombre_materia || e.subject;
+  }
+  // Lookup by ID
+  if (e.idMateria && materiasMap.value[e.idMateria]) {
+      return materiasMap.value[e.idMateria];
+  }
+  return 'SIN MATERIA';
+}
+
+function getProfesor(e) {
+  if (e.nombreProfesor || e.academico_titular || e.profesor || e.nombre_profesor) {
+      return e.nombreProfesor || e.academico_titular || e.profesor || e.nombre_profesor;
+  }
+  // Lookup by ID (check profesorId or idProfesor)
+  const id = e.profesorId || e.idProfesor;
+  if (id && profesoresMap.value[id]) {
+      return profesoresMap.value[id];
+  }
+  return 'SIN PROFESOR';
+}
+
+function getHora(e) {
+  if (e.horaInicio && e.horaFin) return `${e.horaInicio} - ${e.horaFin}`;
+  if (e.hora_inicio && e.hora_fin) return `${e.hora_inicio} - ${e.hora_fin}`;
+  if (e.hora) return e.hora;
+  
+  // Lookup by ID
+  if (e.idHorario && horariosMap.value[e.idHorario]) {
+      return horariosMap.value[e.idHorario];
+  }
+  return '--:--';
+}
+
+function getAula(e) {
+  if (e.nombreAula || e.aula || e.nombre_aula || e.classroom) {
+      return e.nombreAula || e.aula || e.nombre_aula || e.classroom;
+  }
+  // Lookup by ID
+  if (e.idAula && aulasMap.value[e.idAula]) {
+      return aulasMap.value[e.idAula];
+  }
+  return 'SIN AULA';
+}
 
 function generarHora(index) {
   const horas = ['08:00-10:00', '10:00-12:00', '12:00-14:00', '16:00-18:00'];
@@ -110,7 +202,19 @@ function generarHora(index) {
 
 function generarPDF() {
   try {
-    const resultado = pdfService.generarPDFHorarioExamenes(examenes.value, {
+    // Normalizar datos para PDF si es necesario
+    const datosNormalizados = examenes.value.map(e => ({
+      ...e,
+      materia: getMateria(e),
+      academico_titular: getProfesor(e),
+      hora: getHora(e),
+      aula: getAula(e), 
+      // aseguramos fecha y grupo que ya funcionaban
+      fecha: e.fecha,
+      grupo: e.grupo
+    }));
+
+    const resultado = pdfService.generarPDFHorarioExamenes(datosNormalizados, {
       titulo: 'Calendario de Evaluaciones Parciales',
       institucion: 'UNSIS - Sistema de Horarios',
       nombreArchivo: `Calendario_Examenes_${Date.now()}.pdf`,

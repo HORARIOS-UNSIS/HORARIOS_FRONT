@@ -12,7 +12,13 @@ export async function loginUser(username, password) {
       password
     });
     
-    const { token, role, idUsuario, username: user, ...restData } = response.data;
+    // Extraer datos, manejando posibles variantes de nombre de propiedades
+    const data = response.data;
+    const token = data.token;
+    // El backend puede devolver 'role' o 'rol'
+    const role = data.role || data.rol; 
+    const idUsuario = data.idUsuario || data.id;
+    const user = data.username || data.nombreUsuario || username;
     
     // Guardar token y datos de usuario en localStorage
     localStorage.setItem('token', token);
@@ -20,7 +26,7 @@ export async function loginUser(username, password) {
       id: idUsuario,
       username: user,
       role: role,
-      ...restData // Guardar cualquier otro dato extra (email, carrera, claveCarrera, etc.)
+      ...data // Guardar el resto de los datos por si acaso
     }));
     
     return {
@@ -30,7 +36,7 @@ export async function loginUser(username, password) {
         id: idUsuario,
         username: user,
         role: role,
-        ...restData
+        ...data
       }
     };
   } catch (error) {

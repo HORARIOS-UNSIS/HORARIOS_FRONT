@@ -29,7 +29,8 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Si la configuración de la petición tiene skipAuthRedirect, no redirigir
+    if (error.response?.status === 401 && !error.config.skipAuthRedirect) {
       // Token expirado o inválido
       localStorage.removeItem('token');
       sessionStorage.removeItem('token');

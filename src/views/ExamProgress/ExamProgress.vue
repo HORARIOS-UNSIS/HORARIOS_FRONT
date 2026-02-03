@@ -51,35 +51,37 @@
               <div v-if="obtenerExamenesGrupo(grupo.id).length > 0" class="exams-list">
                 <div 
                   v-for="examen in obtenerExamenesGrupo(grupo.id)" 
-                  :key="examen.id" 
+                  :key="examen.idExamen" 
                   class="exam-item"
                 >
                   <div class="exam-info">
-                    <span class="exam-tipo">{{ obtenerNombreTipoExamen(examen.tipo_examen_id) }}</span>
+                    <span class="exam-materia-title">{{ examen.nombreMateria }}</span>
+                    <span class="exam-tipo">{{ examen.claveMateria }}</span>
                     <span class="exam-fecha">{{ formatearFecha(examen.fecha) }}</span>
+                    <span class="exam-profesor">{{ examen.nombreProfesor }}</span>
                   </div>
                   
                   <div class="exam-actions">
                     <button 
                       class="status-btn aprobado"
-                      :class="{ active: examen.estado === 'aprobado' }"
-                      @click="cambiarEstado(examen.id, 'aprobado')"
+                      :class="{ active: examen.status === 'aprobado' }"
+                      @click="cambiarEstado(examen.idExamen, 'aprobado')"
                       title="Aprobar"
                     >
                       <i class="pi pi-check"></i>
                     </button>
                     <button 
                       class="status-btn pendiente"
-                      :class="{ active: examen.estado === 'pendiente' }"
-                      @click="cambiarEstado(examen.id, 'pendiente')"
+                      :class="{ active: examen.status === 'pendiente' }"
+                      @click="cambiarEstado(examen.idExamen, 'pendiente')"
                       title="Pendiente"
                     >
                       <i class="pi pi-clock"></i>
                     </button>
                     <button 
                       class="status-btn rechazado"
-                      :class="{ active: examen.estado === 'rechazado' }"
-                      @click="cambiarEstado(examen.id, 'rechazado')"
+                      :class="{ active: examen.status === 'rechazado' }"
+                      @click="cambiarEstado(examen.idExamen, 'rechazado')"
                       title="Rechazar"
                     >
                       <i class="pi pi-times"></i>
@@ -121,9 +123,10 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import * as examService from '../../services/examService';
+import { obtenerHorarios, obtenerGruposPorCarreraYPeriodo, obtenerHorariosFiltrados } from '../../services/backendService';
 
 const router = useRouter();
 
@@ -142,6 +145,24 @@ const gruposData = ref([]);
 const materiasData = ref([]);
 const carrerasData = ref([]);
 const carreraSeleccionada = ref('');
+
+const mapCarreras = {
+  "01": "LICENCIATURA EN ADMINISTRACIÓN MUNICIPAL",
+  "03": "LICENCIATURA EN ENFERMERÍA",
+  "04": "LICENCIATURA EN CIENCIAS EMPRESARIALES",
+  "05": "LICENCIATURA EN ADMINISTRACIÓN PÚBLICA",
+  "06": "LICENCIATURA EN INFORMÁTICA",
+  "07": "LICENCIATURA EN NUTRICIÓN",
+  "08": "MAESTRÍA EN PLANEACIÓN ESTRATÉGICA MUNICIPAL",
+  "09": "MAESTRÍA EN SALUD PÚBLICA",
+  "10": "MAESTRÍA EN GOBIERNO ELECTRÓNICO",
+  "11": "DOCTORADO EN GOBIERNO ELECTRÓNICO",
+  "12": "INGLÉS",
+  "14": "LICENCIATURA EN ODONTOLOGÍA",
+  "15": "LICENCIATURA EN MEDICINA",
+  "15POS": "MAESTRÍA EN ADMINISTRACIÓN UNIVERSITARIA",
+  "16A": "LICENCIATURA EN CIENCIAS BIOMÉDICAS"
+}
 
 /* =========================
    COMPUTED
@@ -162,10 +183,9 @@ const carrerasDisponibles = computed(() => {
 });
 
 const gruposFiltrados = computed(() => {
-  if (!carreraSeleccionada.value) return [];
-  return gruposData.value.filter(
-    g => g.carrera_id === parseInt(carreraSeleccionada.value)
-  );
+  // Ya estamos filtrando al hacer fetch, así que devolvemos todo lo que tenemos en gruposData
+  if (gruposData.value.length === 0) return [];
+  return gruposData.value;
 });
 
 /* =========================
@@ -174,6 +194,15 @@ const gruposFiltrados = computed(() => {
 onMounted(() => {
   verificarAutenticacion();
   cargarDatos();
+});
+
+watch(carreraSeleccionada, (newVal) => {
+  if(newVal) {
+    cargarDatosCompleto(newVal);
+  } else {
+    gruposData.value = [];
+    examenesData.value = [];
+  }
 });
 
 /* =========================
@@ -190,37 +219,111 @@ const verificarAutenticacion = () => {
   try {
     const userData = JSON.parse(user);
     usuarioEmail.value = userData.email || '';
-    usuarioRol.value = userData.rol || 'servicios_escolares';
-    usuarioCarrera.value = userData.carrera_id ?? null;
+    
+    // Mapear roles
+    const roleMap = {
+      'JEFE': 'jefe_carrera',
+      'SERV': 'servicios_escolares'
+    };
+    usuarioRol.value = roleMap[userData.rol] || 'servicios_escolares';
+    
+    usuarioCarrera.value = userData.claveCarrera ?? null;
 
     if (usuarioRol.value === 'jefe_carrera' && usuarioCarrera.value) {
       carreraSeleccionada.value = usuarioCarrera.value.toString();
+      // El watcher se encargará de cargar los datos
     }
   } catch (error) {
     router.push('/');
   }
 };
 
-const cargarDatos = () => {
-  examenesData.value = examService.obtenerExamenes();
-  gruposData.value = examService.obtenerGrupos();
-  materiasData.value = examService.obtenerMaterias();
-  carrerasData.value = examService.obtenerCarreras();
+const cargarDatos = async () => {
+  // Llenar carrerasData desde el mapa
+  carrerasData.value = Object.entries(mapCarreras).map(([id, nombre]) => ({
+    id,
+    nombre
+  }));
+};
+
+const cargarDatosCompleto = async (claveCarrera) => {
+  // Resetear datos
+  gruposData.value = [];
+  examenesData.value = [];
+  
+  const periodoFijo = "2526A";
+
+  // Intentar cargar grupos y exámenes en paralelo
+  const [gruposCargados, examenesCargados] = await Promise.all([
+    obtenerGruposPorCarreraYPeriodo(claveCarrera, periodoFijo).catch(err => {
+      console.warn("Error cargando grupos (posible 401/403):", err);
+      return [];
+    }),
+    obtenerHorariosFiltrados(claveCarrera, periodoFijo).catch(err => {
+       console.error("Error cargando exámenes:", err);
+       return [];
+    })
+  ]);
+
+  // Setear exámenes
+  examenesData.value = examenesCargados;
+
+  // Si obtuvimos grupos del backend, usarlos
+  if (gruposCargados && gruposCargados.length > 0) {
+    gruposData.value = gruposCargados.map(g => ({
+       id: g.nombre, 
+       nombre: `Grupo ${g.nombre}`,
+       semestre: g.semestre,
+       carrera_id: claveCarrera, 
+       materia_id: 0, 
+       capacidad_alumnos: g.alumnos || 0,
+       aula_id: 'N/A'
+    }));
+  } else if (examenesCargados.length > 0) {
+    // FALLBACK: Si falló la carga de grupos (por permisos) pero tenemos exámenes,
+    // reconstruimos los grupos a partir de los exámenes para que el usuario pueda ver algo.
+    console.log("Generando grupos a partir de exámenes (Fallback)");
+    const gruposUnicos = {};
+    
+    examenesCargados.forEach(ex => {
+      const gNombre = ex.grupo || 'Sin Grupo';
+      if (!gruposUnicos[gNombre]) {
+        gruposUnicos[gNombre] = {
+           id: gNombre,
+           nombre: `Grupo ${gNombre}`,
+           semestre: 'Unknown', // No tenemos este dato en el examen
+           carrera_id: claveCarrera,
+           materia_id: 0,
+           capacidad_alumnos: 0,
+           aula_id: 'N/A'
+        };
+      }
+    });
+    gruposData.value = Object.values(gruposUnicos).sort((a,b) => a.id.localeCompare(b.id));
+  }
+};
+
+const cargarExamenesBackend = async (claveCarrera) => {
+  // DEPRECATED: Usar cargarDatosCompleto
+};
+
+const cargarGruposBackend = async (claveCarrera) => {
+  // DEPRECATED: Usar cargarDatosCompleto
 };
 
 const cargarGrupos = () => {
-  // La vista se actualiza sola por el computed
+  // La vista se actualiza sola por el computed, pero el watcher activará cargarGruposBackend
 };
 
 /* =========================
    FUNCIONES DE SERVICIO
 ========================= */
 const obtenerNombreMateria = (materiaId) => {
-  return examService.obtenerNombreMateria(materiaId);
+  return ''; // Ya no se usa, viene en el objeto examen
 };
 
 const obtenerNombreTipoExamen = (tipoId) => {
-  return examService.obtenerNombreTipoExamen(tipoId);
+  return ''; // Viene en el objeto como idTipo o texto si lo mapeamos
 };
 
 const formatearFecha = (fecha) => {
@@ -231,26 +334,25 @@ const formatearFecha = (fecha) => {
    LÓGICA DE EXÁMENES
 ========================= */
 const obtenerExamenesGrupo = (grupoId) => {
+  // grupoId es string '706'
   return examenesData.value.filter(
-    exam => exam.grupo_id === grupoId
+    exam => exam.grupo === grupoId
   );
 };
 
 const cambiarEstado = (examenId, nuevoEstado) => {
-  const examen = examenesData.value.find(e => e.id === examenId);
+  const examen = examenesData.value.find(e => e.idExamen === examenId);
 
   if (examen) {
-    examen.estado = nuevoEstado;
-    localStorage.setItem(
-      'examenes',
-      JSON.stringify(examenesData.value)
-    );
+    examen.status = nuevoEstado;
+    // Falta persistencia al backend si se requiere update
+    console.log(`Estado cambiado a ${nuevoEstado} para examen ${examenId}`);
   }
 };
 
 const contarEstado = (grupoId, estado) => {
   return obtenerExamenesGrupo(grupoId)
-    .filter(e => e.estado === estado).length;
+    .filter(e => e.status === estado).length;
 };
 
 /* =========================

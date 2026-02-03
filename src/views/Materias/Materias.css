@@ -62,7 +62,9 @@
 .table-wrapper {
     background: #fff;
     border-radius: 12px;
-    overflow: hidden;
+    /* overflow: hidden;  <-- Eliminado para permitir scroll */
+    max-height: calc(100vh - 220px);
+    overflow-y: auto;
     border: 1px solid #e6e1f0;
 }
 
@@ -73,10 +75,14 @@
 }
 
 .data-table thead {
-    background: linear-gradient(135deg, #ede7f6, #e1bee7);
+    /* background: linear-gradient(135deg, #ede7f6, #e1bee7); Removed to fix sticky header */
 }
 
 .data-table th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #ede7f6; /* Solid color for sticky header */
     text-align: left;
     padding: 14px 16px;
     font-weight: 600;

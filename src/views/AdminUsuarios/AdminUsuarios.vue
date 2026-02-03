@@ -250,7 +250,7 @@ const crearUsuario = async () => {
 
     // Actualizar lista local
     usuarios.value.push({
-      idUsuario: res.id || usuarios.value.length + 1, // Fallback si no devuelve ID
+      idUsuario: res.idUsuario || res.id || usuarios.value.length + 1,
       nombre: payload.nombre,
       email: payload.email,
       username: payload.username,

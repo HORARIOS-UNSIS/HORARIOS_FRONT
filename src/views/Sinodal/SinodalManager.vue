@@ -169,49 +169,86 @@
   </div>
 </template>
 <script setup>
-  //import '../Materias/Materias.css'
   import './SinodalManager.css'
-  import { ref} from 'vue'
+  import { ref, onMounted, watch } from 'vue'
+  import { 
+    obtenerAsignacionesSinodales, 
+    obtenerProfesores, 
+    asignarSinodal,
+    eliminarSinodal 
+  } from '../../services/backendService'
+
+  const props = defineProps({
+    usuarioRol: String,
+    carreraSeleccionada: [String, Number]
+  })
 
   const modalVisible = ref(false)
   const materiaSeleccionada = ref(null)
   const mostrarProfesores = ref(false)
-
-
-  const materias = ref([
-    {
-      id: 1,
-      nombre: 'Programación Orientada a Objetos',
-      semestre: 3,
-      profesor_titular: 'Dr. Ana Martínez',
-      sinodales: [
-        { nombre: 'Dr. Juan Pérez García', rol: 'Presidente' }
-      ]
-    },
-    {
-      id: 2,
-      nombre: 'Base de Datos Avanzada',
-      semestre: 4,
-      profesor_titular: 'Mtra. Laura Gómez',
-      sinodales: []
-    }
-  ])
-
-  const profesoresDisponibles = ref([
-    { id: 1, nombre: 'Dr. Juan Pérez García', email: 'juan@uni.edu' },
-    { id: 2, nombre: 'Dra. María López', email: 'maria@uni.edu' }
-  ])
-
+  
+  const materias = ref([])
+  const profesoresDisponibles = ref([])
+  
   const nuevoSinodal = ref({
     nombre: '',
+    idProfesor: null,
     rol: '',
     email: ''
+  })
+
+  // Cargar datos al montar
+  const cargarDatos = async () => {
+    if (!props.carreraSeleccionada) return
+
+    const claveCarrera = String(props.carreraSeleccionada)
+    const periodoFijo = "2526A" 
+
+    try {
+      // 1. Cargar Materias y Sinodales
+      const data = await obtenerAsignacionesSinodales(claveCarrera, periodoFijo)
+      
+      // Mapear respuesta del back a estructura de la vista
+      materias.value = data.map(m => ({
+        id: m.idMateria,
+        idProfesorTitular: m.idProfesorTitular, // Necesario para el POST
+        nombre: m.nombreMateria,
+        semestre: m.semestre,
+        profesor_titular: m.nombreProfesorTitular || 'No asignado',
+        sinodales: m.sinodales || [] 
+      }))
+
+    } catch (error) {
+      console.error("Error cargando asignaciones:", error)
+    }
+  }
+
+  const cargarProfesores = async () => {
+    try {
+      const data = await obtenerProfesores()
+      profesoresDisponibles.value = data.map(p => ({
+        id: p.id,
+        nombre: p.nombre,
+        email: 'consultar@uni.edu' // El back no mandaba email, mockeamos o ajustamos
+      }))
+    } catch (error) {
+      console.error("Error cargando profesores:", error)
+    }
+  }
+
+  onMounted(() => {
+    cargarDatos()
+    cargarProfesores()
+  })
+
+  watch(() => props.carreraSeleccionada, () => {
+    cargarDatos()
   })
 
   const abrirModal = (materia) => {
     materiaSeleccionada.value = materia
     modalVisible.value = true
-    nuevoSinodal.value = { nombre: '', rol: '', email: '' }
+    nuevoSinodal.value = { nombre: '', idProfesor: null, rol: '', email: '' }
     mostrarProfesores.value = false
   }
 
@@ -220,22 +257,59 @@
     materiaSeleccionada.value = null
     mostrarProfesores.value = false
   }
+  
   const toggleProfesores = () => {
     mostrarProfesores.value = !mostrarProfesores.value
   }
+  
   const seleccionarProfesor = (prof) => {
-  nuevoSinodal.value.nombre = prof.nombre
-  nuevoSinodal.value.email = prof.email
-  nuevoSinodal.value.rol = ''
-  mostrarProfesores.value = false
-}
-  const agregarSinodal = () => {
-    materiaSeleccionada.value.sinodales.push({ ...nuevoSinodal.value })
-    cerrarModal()
+    nuevoSinodal.value.nombre = prof.nombre
+    nuevoSinodal.value.idProfesor = prof.id
+    nuevoSinodal.value.email = prof.email
+    nuevoSinodal.value.rol = '' // Reset rol si se cambia
+    mostrarProfesores.value = false
   }
-  const removerSinodal = (materiaId, index) => {
+  
+  const agregarSinodal = async () => {
+    if (!materiaSeleccionada.value || !nuevoSinodal.value.idProfesor) return
+
+    try {
+      const payload = {
+        idMateria: materiaSeleccionada.value.id,
+        idProfesorTitular: materiaSeleccionada.value.idProfesorTitular,
+        idProfesorSinodal: nuevoSinodal.value.idProfesor
+      }
+
+      // Backend Call
+      await asignarSinodal(payload)
+
+      // Éxito: Recargar la tabla
+      await cargarDatos()
+      cerrarModal()
+
+    } catch (error) {
+      alert("Error al asignar sinodal")
+      console.error(error)
+    }
+  }
+
+  const removerSinodal = async (materiaId, index) => {
     const materia = materias.value.find(m => m.id === materiaId)
-    materia.sinodales.splice(index, 1)
+    if (!materia) return
+
+    const sinodal = materia.sinodales[index]
+    if (!sinodal || !sinodal.idSinodal) return
+
+    if(!confirm(`¿Quitar a ${sinodal.nombre}?`)) return
+
+    try {
+      await eliminarSinodal(sinodal.idSinodal)
+      // Recargar tabla
+      await cargarDatos()
+    } catch (error) {
+      console.error("Error eliminando sinodal:", error)
+      alert("No se pudo eliminar el sinodal")
+    }
   }
 
 </script>

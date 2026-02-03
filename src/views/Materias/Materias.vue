@@ -20,9 +20,19 @@
     <div v-if="bloqueado" class="alert-warning">
       Ya existen exámenes programados. La configuración de materias está bloqueada.
     </div>
+    
+    <div v-if="cargando" class="empty-state">
+       <i class="pi pi-spin pi-spinner" style="font-size: 2rem;"></i>
+       <p>Cargando materias...</p>
+    </div>
+
+    <div v-else-if="error" class="empty-state">
+       <i class="pi pi-exclamation-circle" style="color: #e53e3e;"></i>
+       <p>{{ error }}</p>
+    </div>
 
 
-    <div v-if="materias.length" class="table-wrapper">
+    <div v-else-if="materias.length" class="table-wrapper">
       <table class="data-table">
         <thead>
           <tr>
@@ -109,6 +119,18 @@
 import './Materias.css'
 import { ref, onMounted, computed, watch } from 'vue'
 import * as examService from '../../services/examService'
+import { obtenerMateriasPorCarreraYPeriodo } from '../../services/backendService'
+
+const props = defineProps({
+  usuarioRol: {
+    type: String,
+    required: true
+  },
+  carreraSeleccionada: {
+    type: [Number, String],
+    default: null
+  }
+})
 
 const materias = ref([])
 const examenesGenerados = ref(false)
@@ -116,16 +138,59 @@ const examenesGenerados = ref(false)
 const aplicarTipoTodos = ref(false)
 const aplicarAcademiaTodos = ref(false)
 
+const cargando = ref(false)
+const error = ref(null)
+
+const cargarMateriasBackend = async () => {
+  error.value = null
+  
+  // Si no hay carrera seleccionada, no hacer nada (o limpiar)
+  if (!props.carreraSeleccionada) {
+    return
+  }
+  
+  const claveCarrera = String(props.carreraSeleccionada)
+  const periodoFijo = "2526A" // Mismo periodo que Grupos.vue
+
+  cargando.value = true
+  try {
+    const data = await obtenerMateriasPorCarreraYPeriodo(claveCarrera, periodoFijo)
+    
+    // Mapeo: 
+    // { "nombre": "Programación I", "esAcademia": true, "claveGrupo": "106", "nombreProfesor": "Juan Perez" }
+    
+    materias.value = data.map((m, i) => ({
+      id: i, // No viene ID, usamos índice temporalmente
+      grupo: m.claveGrupo,
+      nombre: m.nombre,
+      profesor: m.nombreProfesor,
+      tipo_aplicacion: 'computadora', // Default
+      es_academia: m.esAcademia
+    }))
+    
+  } catch (err) {
+    console.error("Error cargando materias:", err)
+    error.value = "Error al cargar materias"
+    materias.value = []
+  } finally {
+    cargando.value = false
+  }
+}
+
 onMounted(() => {
-  materias.value = examService.obtenerMateriasParaExamen().map(m => ({
-    ...m,
-    tipo_aplicacion: 'computadora',
-    es_academia: false
-  }))
+  cargarMateriasBackend()
+  
   // verificr si ya hay examenes programados
   //examenesGenerados.value = examService.obtenerExamenes().length > 0
   // Simulación: NO hay exámenes programados
   examenesGenerados.value = false
+})
+
+watch(() => props.carreraSeleccionada, (newVal) => {
+  if (newVal) cargarMateriasBackend()
+})
+watch(() => props.usuarioRol, () => {
+   cargarMateriasBackend()
 })
 
 const bloqueado = computed(() => examenesGenerados.value)
